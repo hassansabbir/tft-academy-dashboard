@@ -1,0 +1,173 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Admin Theme (Light Main, Navy Sidebar) */
+  --color-primary: #07152F;
+  --color-secondary: #597e9a;
+  --color-base: #4E4E4E;
+  
+  --color-sidebar-bg: #07152F;
+  --color-sidebar-text: #FFFFFF;
+  
+  --color-main-bg: #F5F7FA;
+  --color-main-text: #333333;
+  --color-card-bg: #FFFFFF;
+}
+
+.theme-coach {
+  /* Coach Theme (Dark Main, Navy Sidebar) */
+  --color-primary: #07152F;
+  --color-secondary: #597e9a;
+  --color-base: #B0B0B0;
+  
+  --color-sidebar-bg: #07152F;
+  --color-sidebar-text: #FFFFFF;
+  
+  --color-main-bg: #050E21;
+  --color-main-text: #E2E8F0;
+  --color-card-bg: #0B1B38;
+}
+
+/* Global Coach Dark Theme Overrides */
+.theme-coach .bg-white {
+  background-color: var(--color-card-bg) !important;
+  color: var(--color-main-text) !important;
+  border-color: #162E58 !important;
+}
+
+.theme-coach .bg-\[\#f8faff\],
+.theme-coach .bg-\[\#F9FAFC\],
+.theme-coach .bg-\[\#F8FAFC\] {
+  background-color: var(--color-main-bg) !important;
+}
+
+.theme-coach .text-gray-900,
+.theme-coach .text-gray-800,
+.theme-coach .text-gray-700 {
+  color: #F8FAFC !important;
+}
+
+.theme-coach .text-gray-500,
+.theme-coach .text-gray-400 {
+  color: #94A3B8 !important;
+}
+
+.theme-coach .border-gray-100,
+.theme-coach .border-gray-200 {
+  border-color: #162E58 !important;
+}
+
+
+* {
+  font-family: "Poppins", serif;
+  font-weight: 400;
+}
+
+/* ant design modal footer top margin remove */
+.ant-modal-footer {
+  margin-top: 0 !important;
+}
+
+/* ant design menu option */
+.ant-menu {
+  background: transparent !important;
+}
+
+.ant-menu-item {
+  color: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 9999px !important;
+  margin-inline: 12px !important;
+  margin-block: 4px !important;
+  width: calc(100% - 24px) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.ant-menu-item-selected {
+  background: linear-gradient(180deg, #1E4ED8 0%, #0F2B8D 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(30, 78, 216, 0.4) !important;
+  border-radius: 9999px !important;
+}
+
+.ant-menu-item-selected a,
+.ant-menu-item-selected span,
+.ant-menu-item-selected svg {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: white !important;
+}
+
+.ant-menu .ant-menu-item .ant-menu-item-icon + span {
+  transition: none !important;
+}
+
+.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: white !important;
+}
+
+.ant-menu .ant-menu-title-content {
+  transition: none !important;
+}
+
+.ant-badge .ant-badge-count {
+  background: #ffffff66 !important;
+  color: white !important;
+  border: 1px solid #ffffff66 !important;
+}
+
+.ant-btn:hover,
+.ant-btn:focus {
+  background-color: var(--color-primary) !important;
+  border-color: white !important;
+  color: white !important;
+  box-shadow: none !important;
+}
+
+.jodit-workplace {
+  height: 550px !important;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #dfdfdf00;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  /* background: #8b0000;  */
+  background: #ffffff67;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* pagination style */
+.ant-pagination-item-active a {
+  color: white !important;
+  background-color: var(--color-primary) !important;
+}
+
+.ant-switch-checked {
+  background-color: var(--color-primary) !important;
+}
