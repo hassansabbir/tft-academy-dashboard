@@ -1,7 +1,6 @@
-import React from "react";
 import { FiChevronLeft, FiFileText, FiTarget } from "react-icons/fi";
 import { FaTrophy, FaStar } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 const attendanceData = [
