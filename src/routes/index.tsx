@@ -4,6 +4,8 @@ import Main from "../Layout/Main/Main";
 import Home from "../Pages/Dashboard/Home";
 import Players from "../Pages/Dashboard/Players";
 import PlayerDetails from "../Pages/Dashboard/PlayerDetails";
+import CoachPlayers from "../Pages/Dashboard/CoachPlayers";
+import CoachPlayerDetails from "../Pages/Dashboard/CoachPlayerDetails";
 import Coaches from "../Pages/Dashboard/Coaches";
 import AddCoach from "../Pages/Dashboard/AddCoach";
 import Squads from "../Pages/Dashboard/Squads";
@@ -35,6 +37,42 @@ const SettingsRoute = () => {
   }, []);
 
   return isCoach ? <CoachSettings /> : <AcademySettings />;
+};
+
+const PlayersRoute = () => {
+  const [isCoach, setIsCoach] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    if (token) {
+      try {
+        const decoded = jwtDecode<JwtPayload>(token);
+        setIsCoach(decoded.role === "COACH");
+      } catch (e) {
+        setIsCoach(false);
+      }
+    }
+  }, []);
+
+  return isCoach ? <CoachPlayers /> : <Players />;
+};
+
+const PlayerDetailsRoute = () => {
+  const [isCoach, setIsCoach] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    if (token) {
+      try {
+        const decoded = jwtDecode<JwtPayload>(token);
+        setIsCoach(decoded.role === "COACH");
+      } catch (e) {
+        setIsCoach(false);
+      }
+    }
+  }, []);
+
+  return isCoach ? <CoachPlayerDetails /> : <PlayerDetails />;
 };
 import AddPlayer from "../Pages/Dashboard/AddPlayer/AddPlayer";
 import ChangePassword from "../Pages/Auth/ChangePassword";
@@ -69,15 +107,15 @@ const router = createBrowserRouter([
       },
       {
         path: "/players",
-        element: <Players />,
+        element: <PlayersRoute />,
       },
       {
         path: "/players/details",
-        element: <PlayerDetails />,
+        element: <PlayerDetailsRoute />,
       },
       {
         path: "/players/:id",
-        element: <PlayerDetails />,
+        element: <PlayerDetailsRoute />,
       },
       {
         path: "/coaches",
