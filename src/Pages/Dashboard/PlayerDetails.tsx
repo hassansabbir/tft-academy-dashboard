@@ -46,53 +46,53 @@ const PlayerDetails = () => {
       } else if (i - rating === 0.5) {
         stars.push(<span key={i} className="text-[#F59E0B]">★</span>);
       } else {
-        stars.push(<span key={i} className="text-gray-600">★</span>);
+        stars.push(<span key={i} className="text-gray-200">★</span>);
       }
     }
     return stars;
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#050E21] p-6 pb-12 overflow-y-auto">
+    <div className="flex flex-col h-full bg-[#f8faff] p-6 pb-12 overflow-y-auto">
       {/* Back Link */}
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-[13px] font-semibold text-[#94A3B8] hover:text-white mb-4 transition-colors cursor-pointer w-fit"
+        className="flex items-center gap-1.5 text-[13px] font-semibold text-gray-500 hover:text-gray-900 mb-4 transition-colors cursor-pointer w-fit"
       >
         <FiChevronLeft size={16} />
         <span>"U16 Futsal Fridays" Details</span>
       </button>
 
       {/* Top Banner Card */}
-      <div className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6 shadow-sm">
+      <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6 shadow-sm">
         {/* Left Side: Avatar & Details */}
         <div className="flex items-center gap-5">
-          <div className="w-20 h-20 rounded-2xl bg-[#2563EB] text-white font-bold text-[28px] flex items-center justify-center shrink-0 shadow-md">
+          <div className="w-20 h-20 rounded-2xl bg-[#1239D4] text-white font-bold text-[28px] flex items-center justify-center shrink-0 shadow-md">
             JM
           </div>
 
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
-              <h1 className="text-[24px] font-bold text-white leading-tight">
+              <h1 className="text-[24px] font-bold text-gray-900 leading-tight">
                 James Mitchell
               </h1>
-              <span className="bg-[#1E3A8A] text-[#60A5FA] px-3 py-1 rounded-full text-[12px] font-bold border border-[#2563EB]/40">
+              <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[12px] font-bold border border-blue-200">
                 Advanced
               </span>
             </div>
 
-            <p className="text-[13px] font-medium text-[#94A3B8] mt-1">
+            <p className="text-[13px] font-medium text-gray-500 mt-1">
               U16 Elite · #9 · ST · Age 15
             </p>
 
             <div className="flex items-center gap-6 mt-3 text-[13px]">
               <div>
-                <span className="text-[#94A3B8] font-medium mr-1.5">Overall Score</span>
-                <span className="text-white font-bold text-[15px]">8.2</span>
-                <span className="text-[#64748B] text-[12px]"> /10</span>
+                <span className="text-gray-500 font-medium mr-1.5">Overall Score</span>
+                <span className="text-gray-900 font-bold text-[15px]">8.2</span>
+                <span className="text-gray-400 text-[12px]"> /10</span>
               </div>
               <div>
-                <span className="text-[#94A3B8] font-medium mr-1.5">Attendance</span>
+                <span className="text-gray-500 font-medium mr-1.5">Attendance</span>
                 <span className="text-[#10B981] font-bold text-[15px]">94%</span>
               </div>
             </div>
@@ -100,43 +100,43 @@ const PlayerDetails = () => {
         </div>
 
         {/* Right Side: Set Other Development Form Box */}
-        <div className="bg-[#07152F] border border-[#162E58] rounded-2xl p-4 flex flex-col gap-2 shrink-0 self-stretch lg:self-auto">
-          <span className="text-[13px] font-bold text-white">Set Other Development</span>
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex flex-col gap-2 shrink-0 self-stretch lg:self-auto">
+          <span className="text-[13px] font-bold text-gray-900">Set Other Development</span>
 
           <div className="flex items-center gap-3">
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-[#64748B] uppercase">Goals</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Goals</span>
               <input
                 type="text"
                 value={goals}
                 onChange={(e) => setGoals(e.target.value)}
-                className="w-16 bg-[#0B1B38] border border-[#162E58] text-white font-bold text-[14px] px-3 py-1.5 rounded-lg text-center focus:outline-none focus:border-blue-500"
+                className="w-16 bg-white border border-gray-200 text-gray-900 font-bold text-[14px] px-3 py-1.5 rounded-lg text-center focus:outline-none focus:border-blue-500 shadow-sm"
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-[#64748B] uppercase">Assists</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Assists</span>
               <input
                 type="text"
                 value={assists}
                 onChange={(e) => setAssists(e.target.value)}
-                className="w-16 bg-[#0B1B38] border border-[#162E58] text-white font-bold text-[14px] px-3 py-1.5 rounded-lg text-center focus:outline-none focus:border-blue-500"
+                className="w-16 bg-white border border-gray-200 text-gray-900 font-bold text-[14px] px-3 py-1.5 rounded-lg text-center focus:outline-none focus:border-blue-500 shadow-sm"
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-[#64748B] uppercase">POTM</span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase">POTM</span>
               <input
                 type="text"
                 value={potm}
                 onChange={(e) => setPotm(e.target.value)}
-                className="w-16 bg-[#0B1B38] border border-[#162E58] text-white font-bold text-[14px] px-3 py-1.5 rounded-lg text-center focus:outline-none focus:border-blue-500"
+                className="w-16 bg-white border border-gray-200 text-gray-900 font-bold text-[14px] px-3 py-1.5 rounded-lg text-center focus:outline-none focus:border-blue-500 shadow-sm"
               />
             </div>
 
             <button
               onClick={handleSaveStats}
-              className="bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl border border-blue-400/20 shadow-xs cursor-pointer self-end transition-all"
+              className="bg-[#1239D4] hover:bg-blue-800 text-white font-bold text-[12px] px-4 py-2.5 rounded-xl shadow-sm cursor-pointer self-end transition-all"
             >
               Save All
             </button>
@@ -147,13 +147,13 @@ const PlayerDetails = () => {
       {/* Main Grid Section (3 Columns) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Column 1: Development Scores & Football Skills */}
-        <div className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-6 flex flex-col shadow-sm">
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[16px] font-bold text-white">Development Scores</h3>
+            <h3 className="text-[16px] font-bold text-gray-900">Development Scores</h3>
             <button
               onClick={() => setModalType("assess")}
-              className="bg-[#132A52] hover:bg-[#1C3A70] text-white text-[12px] font-bold px-3 py-1.5 rounded-full border border-[#234580] flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 text-[12px] font-bold px-3 py-1.5 rounded-full border border-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <FiActivity size={13} />
               <span>Add New Assess</span>
@@ -164,100 +164,100 @@ const PlayerDetails = () => {
           <div className="flex flex-col gap-4">
             {/* Technical */}
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-[#94A3B8] w-28 shrink-0">Technical</span>
-              <div className="flex-1 bg-[#162E58] h-2 rounded-full overflow-hidden">
+              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Technical</span>
+              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
                 <div className="h-full bg-[#3B82F6] rounded-full" style={{ width: "82%" }} />
               </div>
-              <span className="text-[13px] font-bold text-white w-8 text-right">8.2</span>
+              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">8.2</span>
             </div>
 
             {/* Physical */}
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-[#94A3B8] w-28 shrink-0">Physical</span>
-              <div className="flex-1 bg-[#162E58] h-2 rounded-full overflow-hidden">
+              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Physical</span>
+              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
                 <div className="h-full bg-[#10B981] rounded-full" style={{ width: "78%" }} />
               </div>
-              <span className="text-[13px] font-bold text-white w-8 text-right">7.8</span>
+              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">7.8</span>
             </div>
 
             {/* Mentality */}
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-[#94A3B8] w-28 shrink-0">Mentality</span>
-              <div className="flex-1 bg-[#162E58] h-2 rounded-full overflow-hidden">
+              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Mentality</span>
+              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
                 <div className="h-full bg-[#F59E0B] rounded-full" style={{ width: "80%" }} />
               </div>
-              <span className="text-[13px] font-bold text-white w-8 text-right">8</span>
+              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">8</span>
             </div>
 
             {/* Social */}
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-[#94A3B8] w-28 shrink-0">Social</span>
-              <div className="flex-1 bg-[#162E58] h-2 rounded-full overflow-hidden">
+              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Social</span>
+              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
                 <div className="h-full bg-[#A855F7] rounded-full" style={{ width: "85%" }} />
               </div>
-              <span className="text-[13px] font-bold text-white w-8 text-right">8.5</span>
+              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">8.5</span>
             </div>
 
             {/* Psychological */}
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-[#94A3B8] w-28 shrink-0">Psychological</span>
-              <div className="flex-1 bg-[#162E58] h-2 rounded-full overflow-hidden">
+              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Psychological</span>
+              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
                 <div className="h-full bg-[#06B6D4] rounded-full" style={{ width: "75%" }} />
               </div>
-              <span className="text-[13px] font-bold text-white w-8 text-right">7.5</span>
+              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">7.5</span>
             </div>
           </div>
 
           {/* Football Skills Section */}
-          <div className="mt-6 pt-6 border-t border-[#162E58] flex flex-col">
-            <h4 className="text-[16px] font-bold text-white mb-4">Football Skills</h4>
+          <div className="mt-6 pt-6 border-t border-gray-100 flex flex-col">
+            <h4 className="text-[16px] font-bold text-gray-900 mb-4">Football Skills</h4>
 
             <div className="flex flex-col gap-3.5">
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-[#94A3B8]">Shooting</span>
+                <span className="text-[13px] font-medium text-gray-500">Shooting</span>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 text-[13px]">{renderStars(4)}</div>
-                  <span className="text-[13px] font-bold text-[#60A5FA] w-6 text-right">4</span>
+                  <span className="text-[13px] font-bold text-blue-600 w-6 text-right">4</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-[#94A3B8]">Passing</span>
+                <span className="text-[13px] font-medium text-gray-500">Passing</span>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 text-[13px]">{renderStars(4.5)}</div>
-                  <span className="text-[13px] font-bold text-[#60A5FA] w-6 text-right">4.5</span>
+                  <span className="text-[13px] font-bold text-blue-600 w-6 text-right">4.5</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-[#94A3B8]">Dribbling</span>
+                <span className="text-[13px] font-medium text-gray-500">Dribbling</span>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 text-[13px]">{renderStars(4)}</div>
-                  <span className="text-[13px] font-bold text-[#60A5FA] w-6 text-right">4</span>
+                  <span className="text-[13px] font-bold text-blue-600 w-6 text-right">4</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-[#94A3B8]">Football IQ</span>
+                <span className="text-[13px] font-medium text-gray-500">Football IQ</span>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 text-[13px]">{renderStars(4.5)}</div>
-                  <span className="text-[13px] font-bold text-[#60A5FA] w-6 text-right">4.5</span>
+                  <span className="text-[13px] font-bold text-blue-600 w-6 text-right">4.5</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-[#94A3B8]">Speed</span>
+                <span className="text-[13px] font-medium text-gray-500">Speed</span>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 text-[13px]">{renderStars(3.5)}</div>
-                  <span className="text-[13px] font-bold text-[#60A5FA] w-6 text-right">3.5</span>
+                  <span className="text-[13px] font-bold text-blue-600 w-6 text-right">3.5</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-[#94A3B8]">Communication</span>
+                <span className="text-[13px] font-medium text-gray-500">Communication</span>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 text-[13px]">{renderStars(4)}</div>
-                  <span className="text-[13px] font-bold text-[#60A5FA] w-6 text-right">4</span>
+                  <span className="text-[13px] font-bold text-blue-600 w-6 text-right">4</span>
                 </div>
               </div>
             </div>
@@ -267,79 +267,79 @@ const PlayerDetails = () => {
         {/* Column 2: Recent Notes & Current Target */}
         <div className="flex flex-col gap-6">
           {/* Card 1: Recent Notes */}
-          <div className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-6 flex flex-col shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h3 className="text-[16px] font-bold text-white">Recent Notes</h3>
-                <span className="text-[12px] font-bold text-[#60A5FA] hover:underline cursor-pointer">
+                <h3 className="text-[16px] font-bold text-gray-900">Recent Notes</h3>
+                <span className="text-[12px] font-bold text-blue-600 hover:underline cursor-pointer">
                   View All
                 </span>
               </div>
 
               <button
                 onClick={() => setModalType("note")}
-                className="bg-[#132A52] hover:bg-[#1C3A70] text-white text-[12px] font-bold px-3 py-1.5 rounded-full border border-[#234580] flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 text-[12px] font-bold px-3 py-1.5 rounded-full border border-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <FiFileText size={13} />
                 <span>Add New Note</span>
               </button>
             </div>
 
-            <div className="bg-[#07152F] border border-[#162E58] rounded-xl p-4 flex flex-col mt-1">
-              <span className="bg-[#064E3B] text-[#34D399] px-3 py-0.5 rounded-full text-[11px] font-bold w-fit mb-2 border border-[#059669]/30">
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex flex-col mt-1">
+              <span className="bg-green-50 text-green-600 px-3 py-0.5 rounded-full text-[11px] font-bold w-fit mb-2 border border-green-200">
                 Positive
               </span>
-              <p className="text-[13px] font-medium text-[#94A3B8] leading-snug">
+              <p className="text-[13px] font-medium text-gray-600 leading-snug">
                 Excellent movement off the ball today. Showed great awareness in the final third and linked play effectively with teammates.
               </p>
-              <span className="text-[11px] font-medium text-[#64748B] mt-2.5">
+              <span className="text-[11px] font-medium text-gray-400 mt-2.5">
                 Today 10:30
               </span>
             </div>
           </div>
 
           {/* Card 2: Current Target */}
-          <div className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-6 flex flex-col shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h3 className="text-[16px] font-bold text-white">Current Target</h3>
-                <span className="text-[12px] font-bold text-[#60A5FA] hover:underline cursor-pointer">
+                <h3 className="text-[16px] font-bold text-gray-900">Current Target</h3>
+                <span className="text-[12px] font-bold text-blue-600 hover:underline cursor-pointer">
                   View All
                 </span>
               </div>
 
               <button
                 onClick={() => setModalType("target")}
-                className="bg-[#1239D4] hover:bg-blue-700 text-white text-[12px] font-bold px-3.5 py-1.5 rounded-full border border-blue-400/20 flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                className="bg-[#1239D4] hover:bg-blue-800 text-white text-[12px] font-bold px-3.5 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <FiTarget size={13} />
                 <span>Set New Target</span>
               </button>
             </div>
 
-            <div className="bg-[#07152F] border border-[#162E58] rounded-xl p-4 flex flex-col mt-1">
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex flex-col mt-1">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-[14px] font-bold text-white">
+                <h4 className="text-[14px] font-bold text-gray-900">
                   Improve Left-Foot Finishing
                 </h4>
-                <span className="bg-[#1E3A8A] text-[#60A5FA] px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-[#2563EB]/30">
+                <span className="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-blue-200">
                   In Progress
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-[12px] mt-1">
-                <span className="text-[#94A3B8] font-medium">Progress</span>
-                <span className="text-[#60A5FA] font-bold">62%</span>
+                <span className="text-gray-500 font-medium">Progress</span>
+                <span className="text-blue-600 font-bold">62%</span>
               </div>
 
-              <div className="w-full bg-[#162E58] h-1.5 rounded-full overflow-hidden mt-1.5 mb-3">
+              <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden mt-1.5 mb-3">
                 <div
-                  className="h-full bg-gradient-to-r from-[#1D4ED8] to-[#3B82F6] rounded-full"
+                  className="h-full bg-blue-600 rounded-full"
                   style={{ width: "62%" }}
                 />
               </div>
 
-              <span className="text-[12px] font-medium text-[#64748B]">
+              <span className="text-[12px] font-medium text-gray-400">
                 Due: 28 Feb 2025
               </span>
             </div>
@@ -349,13 +349,13 @@ const PlayerDetails = () => {
         {/* Column 3: Attendance Analytics & Achievement */}
         <div className="flex flex-col gap-6">
           {/* Card 1: Attendance Analytics */}
-          <div className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-6 flex flex-col shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[16px] font-bold text-white">Attendance Analytics</h3>
+              <h3 className="text-[16px] font-bold text-gray-900">Attendance Analytics</h3>
 
               <button
                 onClick={() => setModalType("attendance")}
-                className="bg-[#132A52] hover:bg-[#1C3A70] text-white text-[12px] font-bold px-3 py-1.5 rounded-full border border-[#234580] flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 text-[12px] font-bold px-3 py-1.5 rounded-full border border-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <FiSend size={13} />
                 <span>Set Attendance Status</span>
@@ -383,8 +383,8 @@ const PlayerDetails = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute flex flex-col items-center justify-center text-center">
-                  <span className="text-[18px] font-bold text-white leading-none">87%</span>
-                  <span className="text-[9px] text-[#94A3B8] font-medium mt-0.5 leading-none">
+                  <span className="text-[18px] font-bold text-gray-900 leading-none">87%</span>
+                  <span className="text-[9px] text-gray-500 font-medium mt-0.5 leading-none">
                     Attendance rate
                   </span>
                 </div>
@@ -392,15 +392,15 @@ const PlayerDetails = () => {
 
               {/* Legend Breakdown */}
               <div className="flex flex-col gap-2.5 flex-1">
-                <div className="flex items-center gap-2 text-[12px] font-bold text-gray-300">
+                <div className="flex items-center gap-2 text-[12px] font-bold text-gray-700">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] shrink-0" />
                   <span>Attended 87%</span>
                 </div>
-                <div className="flex items-center gap-2 text-[12px] font-bold text-gray-300">
+                <div className="flex items-center gap-2 text-[12px] font-bold text-gray-700">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] shrink-0" />
                   <span>Missed 8%</span>
                 </div>
-                <div className="flex items-center gap-2 text-[12px] font-bold text-gray-300">
+                <div className="flex items-center gap-2 text-[12px] font-bold text-gray-700">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B] shrink-0" />
                   <span>Late 5%</span>
                 </div>
@@ -409,18 +409,18 @@ const PlayerDetails = () => {
           </div>
 
           {/* Card 2: Achievement */}
-          <div className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-6 flex flex-col shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <h3 className="text-[16px] font-bold text-white">Achievement</h3>
-                <span className="text-[12px] font-bold text-[#60A5FA] hover:underline cursor-pointer">
+                <h3 className="text-[16px] font-bold text-gray-900">Achievement</h3>
+                <span className="text-[12px] font-bold text-blue-600 hover:underline cursor-pointer">
                   View All
                 </span>
               </div>
 
               <button
                 onClick={() => setModalType("achievement")}
-                className="bg-[#132A52] hover:bg-[#1C3A70] text-white text-[12px] font-bold px-3 py-1.5 rounded-full border border-[#234580] flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 text-[12px] font-bold px-3 py-1.5 rounded-full border border-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <FiPlus size={13} />
                 <span>Add Achievement</span>
@@ -428,16 +428,16 @@ const PlayerDetails = () => {
             </div>
 
             <div className="flex flex-col items-center justify-center text-center py-3 mt-1">
-              <div className="w-14 h-14 rounded-2xl bg-[#EAB308]/15 text-[#EAB308] flex items-center justify-center mb-3">
+              <div className="w-14 h-14 rounded-2xl bg-yellow-50 text-yellow-500 flex items-center justify-center mb-3">
                 <BiTrophy size={28} />
               </div>
-              <h4 className="text-[16px] font-bold text-white leading-tight">
+              <h4 className="text-[16px] font-bold text-gray-900 leading-tight">
                 Player of the Match
               </h4>
-              <p className="text-[13px] font-medium text-[#94A3B8] mt-0.5">
+              <p className="text-[13px] font-medium text-gray-500 mt-0.5">
                 vs Riverside FC
               </p>
-              <span className="text-[12px] font-medium text-[#64748B] mt-1">
+              <span className="text-[12px] font-medium text-gray-400 mt-1">
                 Jan 18, 2025
               </span>
             </div>

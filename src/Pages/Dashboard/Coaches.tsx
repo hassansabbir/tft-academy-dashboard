@@ -99,7 +99,10 @@ const Coaches = () => {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center justify-end gap-3">
-                      <button className="text-blue-500 hover:text-blue-700 transition-colors p-1">
+                      <button 
+                        onClick={() => navigate(`/coaches/${coach.id}`)}
+                        className="text-blue-500 hover:text-blue-700 transition-colors p-1"
+                      >
                         <FiEye size={18} strokeWidth={2.5} />
                       </button>
                       <button className="text-gray-400 hover:text-gray-600 transition-colors p-1">

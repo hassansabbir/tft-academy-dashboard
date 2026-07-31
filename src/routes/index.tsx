@@ -11,6 +11,7 @@ import AddCoach from "../Pages/Dashboard/AddCoach";
 import Squads from "../Pages/Dashboard/Squads";
 import CreateSquad from "../Pages/Dashboard/CreateSquad";
 import SquadDetails from "../Pages/Dashboard/SquadDetails";
+import CoachDetails from "../Pages/Dashboard/CoachDetails";
 import Assessments from "../Pages/Dashboard/Assessments";
 import AcademySettings from "../Pages/Dashboard/AcademySettings";
 import CoachSettings from "../Pages/Dashboard/CoachSettings";
@@ -124,6 +125,14 @@ const router = createBrowserRouter([
       {
         path: "/coaches/add",
         element: <AddCoach />,
+      },
+      {
+        path: "/coaches/details",
+        element: <CoachDetails />,
+      },
+      {
+        path: "/coaches/:id",
+        element: <CoachDetails />,
       },
       {
         path: "/squads",
