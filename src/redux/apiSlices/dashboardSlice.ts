@@ -10,6 +10,33 @@ const dashboardSlice = api.injectEndpoints({
         };
       },
     }),
+    adminKpiCards: builder.query({
+      query: () => {
+        return {
+          method: "GET",
+          url: "/dashboard/admin/kpi-cards",
+        };
+      },
+      transformResponse: (response: any) => response.data,
+    }),
+    adminMonthlyAttendance: builder.query({
+      query: () => {
+        return {
+          method: "GET",
+          url: "/dashboard/admin/monthly-attendance",
+        };
+      },
+      transformResponse: (response: any) => response.data,
+    }),
+    adminAgeDistribution: builder.query({
+      query: () => {
+        return {
+          method: "GET",
+          url: "/dashboard/admin/age-distribution",
+        };
+      },
+      transformResponse: (response: any) => response.data,
+    }),
     overAllState: builder.query({
       query: ({ range }) => {
         return {
@@ -44,4 +71,7 @@ export const {
   useOverAllStateQuery,
   useBestServicesQuery,
   useVendorsConversionDataQuery,
+  useAdminKpiCardsQuery,
+  useAdminMonthlyAttendanceQuery,
+  useAdminAgeDistributionQuery,
 } = dashboardSlice;

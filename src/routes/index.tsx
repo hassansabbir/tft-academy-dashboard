@@ -18,61 +18,85 @@ import CoachSettings from "../Pages/Dashboard/CoachSettings";
 import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 
+import { Spin } from "antd";
+
 interface JwtPayload {
   role?: string;
 }
 
+const checkIsCoach = (): boolean => {
+  const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+  if (token) {
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      return decoded.role === "CHOACH";
+    } catch (e) {
+      return false;
+    }
+  }
+  return false;
+};
+
 const SettingsRoute = () => {
   const [isCoach, setIsCoach] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
-        setIsCoach(decoded.role === "COACH");
+        setIsCoach(decoded.role === "CHOACH");
       } catch (e) {
         setIsCoach(false);
       }
     }
+    setIsLoading(false);
   }, []);
 
+  if (isLoading) return <div className="flex h-full items-center justify-center"><Spin size="large" /></div>;
   return isCoach ? <CoachSettings /> : <AcademySettings />;
 };
 
 const PlayersRoute = () => {
   const [isCoach, setIsCoach] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
-        setIsCoach(decoded.role === "COACH");
+        setIsCoach(decoded.role === "CHOACH");
       } catch (e) {
         setIsCoach(false);
       }
     }
+    setIsLoading(false);
   }, []);
 
+  if (isLoading) return <div className="flex h-full items-center justify-center"><Spin size="large" /></div>;
   return isCoach ? <CoachPlayers /> : <Players />;
 };
 
 const PlayerDetailsRoute = () => {
   const [isCoach, setIsCoach] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
-        setIsCoach(decoded.role === "COACH");
+        setIsCoach(decoded.role === "CHOACH");
       } catch (e) {
         setIsCoach(false);
       }
     }
+    setIsLoading(false);
   }, []);
 
+  if (isLoading) return <div className="flex h-full items-center justify-center"><Spin size="large" /></div>;
   return isCoach ? <CoachPlayerDetails /> : <PlayerDetails />;
 };
 import AddPlayer from "../Pages/Dashboard/AddPlayer/AddPlayer";
@@ -88,6 +112,8 @@ import AboutUs from "../components/ui/Settings/AboutUs";
 import OfferList from "../components/ui/Settings/OfferList";
 
 import PrivateRoute from "./PrivateRoute";
+import ProtectedRoute from "./ProtectedRoute";
+import Unauthorized from "../Unauthorized";
 import Attendance from "@/Pages/Dashboard/Attendance";
 import DevTargets from "@/Pages/Dashboard/DevTargets";
 import SessionNotes from "@/Pages/Dashboard/SessionNotes";
@@ -120,19 +146,19 @@ const router = createBrowserRouter([
       },
       {
         path: "/coaches",
-        element: <Coaches />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><Coaches /></ProtectedRoute>,
       },
       {
         path: "/coaches/add",
-        element: <AddCoach />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><AddCoach /></ProtectedRoute>,
       },
       {
         path: "/coaches/details",
-        element: <CoachDetails />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><CoachDetails /></ProtectedRoute>,
       },
       {
         path: "/coaches/:id",
-        element: <CoachDetails />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><CoachDetails /></ProtectedRoute>,
       },
       {
         path: "/squads",
@@ -148,7 +174,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/squads/add",
-        element: <CreateSquad />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><CreateSquad /></ProtectedRoute>,
       },
       {
         path: "/attendance",
@@ -160,11 +186,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/dev-targets",
-        element: <DevTargets />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><DevTargets /></ProtectedRoute>,
       },
       {
         path: "/targets",
-        element: <DevTargets />,
+        element: <ProtectedRoute allowedRoles={["CHOACH"]}><DevTargets /></ProtectedRoute>,
       },
       {
         path: "/session-notes",
@@ -176,19 +202,19 @@ const router = createBrowserRouter([
       },
       {
         path: "/academy-settings",
-        element: <SettingsRoute />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><SettingsRoute /></ProtectedRoute>,
       },
       {
         path: "/settings",
-        element: <SettingsRoute />,
+        element: <ProtectedRoute allowedRoles={["CHOACH"]}><SettingsRoute /></ProtectedRoute>,
       },
       {
         path: "/players/add",
-        element: <AddPlayer />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><AddPlayer /></ProtectedRoute>,
       },
       {
         path: "/personal-information",
-        element: <UserProfile />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><UserProfile /></ProtectedRoute>,
       },
       {
         path: "/change-password",
@@ -218,7 +244,7 @@ const router = createBrowserRouter([
 
       {
         path: "/profile",
-        element: <UserProfile />,
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><UserProfile /></ProtectedRoute>,
       },
       {
         path: "/notification",
@@ -251,6 +277,10 @@ const router = createBrowserRouter([
         element: <ResetPassword />,
       },
     ],
+  },
+  {
+    path: "/unauthorized",
+    element: <Unauthorized />,
   },
   {
     path: "*",

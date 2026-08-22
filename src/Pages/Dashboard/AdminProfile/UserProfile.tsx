@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiCamera, FiCheck, FiCheckCircle, FiKey, FiLogOut } from "react-icons/fi";
-import { Switch, message } from "antd";
+import { Switch, message, Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import { useProfileQuery } from "../../../redux/apiSlices/authSlice";
 
 interface PreferenceItem {
   id: string;
@@ -48,10 +49,12 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"profile-info" | "security" | "preferences">("profile-info");
 
+  const { data: userData, isLoading } = useProfileQuery();
+
   // Profile State
-  const [firstName, setFirstName] = useState("Super");
-  const [lastName, setLastName] = useState("Admin");
-  const [email, setEmail] = useState("admin@tfp.com");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+44 7700 000000");
 
   // Security State
@@ -64,6 +67,18 @@ const UserProfile = () => {
 
   // Avatar State (Initials SA badge or custom image preview)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userData) {
+      const parts = (userData.name || "").split(" ");
+      setFirstName(parts[0] || "");
+      setLastName(parts.slice(1).join(" ") || "");
+      setEmail(userData.email || "");
+      if (userData.image) {
+        setAvatarPreview(`${(import.meta as any).env.VITE_BASE_URL}${userData.image}`);
+      }
+    }
+  }, [userData]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -108,8 +123,12 @@ const UserProfile = () => {
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
+    localStorage.removeItem("Authorization");
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("Authorization");
     Cookies.remove("refreshToken");
     message.success("Logged out successfully");
     navigate("/auth/login");
@@ -161,9 +180,9 @@ const UserProfile = () => {
               </label>
             </div>
 
-            <h2 className="text-[18px] font-bold text-gray-900 leading-snug">{firstName} {lastName}</h2>
-            <p className="text-[13px] text-gray-400 font-medium mt-0.5">Academy Manager</p>
-            <p className="text-[13px] text-gray-400 font-medium mt-0.5">{email}</p>
+            <h2 className="text-[18px] font-bold text-gray-900 leading-snug">{userData?.name || "Loading..."}</h2>
+            <p className="text-[13px] text-gray-400 font-medium mt-0.5">{userData?.role?.replace(/_/g, " ") || "Admin"}</p>
+            <p className="text-[13px] text-gray-400 font-medium mt-0.5">{userData?.email || ""}</p>
 
             <div className="w-full border-t border-gray-100 my-4" />
 

@@ -1,53 +1,56 @@
 import { FiUsers, FiActivity, FiShield, FiClipboard, FiTarget, FiCalendar, FiPlus, FiUserCheck } from "react-icons/fi";
 import { BiCalendarCheck } from "react-icons/bi";
+import { useAdminKpiCardsQuery } from "../../../redux/apiSlices/dashboardSlice";
 
 const DashboardState = () => {
+  const { data: kpiData, isLoading } = useAdminKpiCardsQuery("");
+
   const statCards = [
     {
       title: "Total Players",
-      value: "92",
+      value: isLoading ? "..." : (kpiData?.totalPlayers || "0"),
       icon: <FiUsers className="text-[#5B79F2] text-xl" />,
       iconBg: "bg-[#5B79F2]/10",
     },
     {
       title: "Active Players",
-      value: "84",
+      value: isLoading ? "..." : (kpiData?.activePlayers || "0"),
       icon: <FiActivity className="text-[#36D189] text-xl" />,
       iconBg: "bg-[#36D189]/10",
     },
     {
       title: "Total Coaches",
-      value: "8",
+      value: isLoading ? "..." : (kpiData?.totalCoaches || "0"),
       icon: <FiUserCheck className="text-[#5B79F2] text-xl" />,
       iconBg: "bg-[#5B79F2]/10",
     },
     {
       title: "Active Squads",
-      value: "6",
+      value: isLoading ? "..." : (kpiData?.activeSquads || "0"),
       icon: <FiShield className="text-[#FFAD4D] text-xl" />,
       iconBg: "bg-[#FFAD4D]/10",
     },
     {
       title: "Today's Attendance",
-      value: "74/84",
+      value: isLoading ? "..." : (kpiData?.todayAttendance || "0/0"),
       icon: <BiCalendarCheck className="text-[#36D189] text-xl" />,
       iconBg: "bg-[#36D189]/10",
     },
     {
       title: "Pending Assessments",
-      value: "12",
+      value: isLoading ? "..." : (kpiData?.pendingAssessments || "0"),
       icon: <FiClipboard className="text-[#FFAD4D] text-xl" />,
       iconBg: "bg-[#FFAD4D]/10",
     },
     {
       title: "Completed Targets",
-      value: "38",
+      value: isLoading ? "..." : (kpiData?.completedTargets || "0"),
       icon: <FiTarget className="text-[#7B61FF] text-xl" />,
       iconBg: "bg-[#7B61FF]/10",
     },
     {
       title: "Upcoming Training",
-      value: "3",
+      value: isLoading ? "..." : (kpiData?.upcomingTraining || "0"),
       icon: <FiCalendar className="text-[#7B61FF] text-xl" />,
       iconBg: "bg-[#7B61FF]/10",
     },

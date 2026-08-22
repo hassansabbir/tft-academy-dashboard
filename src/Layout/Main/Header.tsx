@@ -3,16 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { FiBell } from "react-icons/fi";
 import { Badge } from "antd";
 import { jwtDecode } from "jwt-decode";
-import { useFetchAdminProfileQuery } from "../../redux/apiSlices/authSlice";
+import { useProfileQuery } from "../../redux/apiSlices/authSlice";
 
 interface UserData {
   name?: string;
   role?: string;
-  profileImg?: string;
-}
-
-interface AdminProfileResponse {
-  data?: UserData;
+  image?: string;
+  email?: string;
 }
 
 interface JwtPayload {
@@ -20,8 +17,8 @@ interface JwtPayload {
 }
 
 const Header = () => {
-  const { data: userData } = useFetchAdminProfileQuery() as {
-    data?: AdminProfileResponse;
+  const { data: userData } = useProfileQuery() as {
+    data?: UserData;
     isLoading: boolean;
   };
   const location = useLocation();
@@ -32,7 +29,7 @@ const Header = () => {
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
-        setIsCoach(decoded.role === "COACH");
+        setIsCoach(decoded.role === "CHOACH");
       } catch (e) {
         setIsCoach(false);
       }
@@ -55,8 +52,8 @@ const Header = () => {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const roleName = isCoach ? "Jay Railton" : (userData?.data?.role || "Super Admin");
-  const subtitleName = isCoach ? "Head Coach" : (userData?.data?.name || "TFP Academy");
+  const roleName = isCoach ? (userData?.name || "Jay Railton") : (userData?.name || "Super Admin");
+  const subtitleName = isCoach ? "Head Coach" : (userData?.role || "TFP Academy");
 
   return (
     <div
@@ -82,15 +79,15 @@ const Header = () => {
         </Link>
 
         <div className="flex items-center gap-3">
-          {userData?.data?.profileImg ? (
+          {userData?.image ? (
             <img
-              src={`${(import.meta as any).env.VITE_BASE_URL}${userData.data.profileImg}`}
+              src={`${(import.meta as any).env.VITE_BASE_URL}${userData.image}`}
               alt="profile"
               className="w-10 h-10 rounded-full object-cover border border-gray-200"
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-[#F4B43B] flex items-center justify-center text-gray-900 font-bold text-sm tracking-wider shadow-xs">
-              {isCoach ? "JR" : getInitials(roleName)}
+              {getInitials(roleName)}
             </div>
           )}
           <div className="flex flex-col">

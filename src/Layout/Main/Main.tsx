@@ -8,22 +8,34 @@ interface JwtPayload {
   role?: string;
 }
 
+import { Spin } from "antd";
+
 const Main = () => {
   const [role, setRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
         setRole(decoded.role || null);
       } catch (e) {
-        console.error("Invalid token", e);
+        // invalid token
       }
     }
+    setIsLoading(false);
   }, []);
 
-  const isCoach = role === "COACH";
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full bg-[#f8faff]">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  const isCoach = role === "CHOACH";
 
   return (
     <div className={`grid grid-cols-12 gap-4 pe-3 bg-mainBg text-mainText ${isCoach ? "theme-coach" : ""}`}>

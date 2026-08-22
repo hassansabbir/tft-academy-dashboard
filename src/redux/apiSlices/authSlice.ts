@@ -124,19 +124,14 @@ const authSlice = api.injectEndpoints({
 
     profile: builder.query<any, void>({
       query: () => {
-        const token = localStorage.getItem("token");
         return {
           method: "GET",
-          url: "/auth/get-profile",
-          headers: {
-            Authorization: token ? `Bearer ${JSON.parse(token)}` : "",
-          },
+          url: "/users/profile",
         };
       },
       providesTags: ["AdminData"],
-
-      transformResponse: ({ user }: { user: any }) => {
-        return user;
+      transformResponse: (response: any) => {
+        return response?.data;
       },
     }),
     fetchAdminProfile: builder.query<any, void>({

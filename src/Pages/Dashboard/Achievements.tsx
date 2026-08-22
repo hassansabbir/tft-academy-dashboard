@@ -15,7 +15,7 @@ const Achievements = () => {
     if (token) {
       try {
         const decoded = jwtDecode<JwtPayload>(token);
-        setIsCoach(decoded.role === "COACH");
+        setIsCoach(decoded.role === "CHOACH");
       } catch (e) {
         setIsCoach(false);
       }

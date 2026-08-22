@@ -1,16 +1,15 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-
-const data = [
-  { name: 'Jan', value: 68 },
-  { name: 'Feb', value: 65 },
-  { name: 'Mar', value: 72 },
-  { name: 'Apr', value: 78 },
-  { name: 'May', value: 75 },
-  { name: 'Jun', value: 80 },
-  { name: 'Jul', value: 74 },
-];
+import { useAdminMonthlyAttendanceQuery } from '../../../redux/apiSlices/dashboardSlice';
+import { Spin } from 'antd';
 
 const MonthlyAttendance = () => {
+  const { data: apiData, isLoading } = useAdminMonthlyAttendanceQuery("");
+
+  const chartData = apiData && Array.isArray(apiData) ? apiData.map((item: any) => ({
+    name: item.month,
+    value: item.rate
+  })) : [];
+
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col h-full">
       <div className="flex justify-between items-start mb-6">
@@ -22,9 +21,14 @@ const MonthlyAttendance = () => {
           2025
         </div>
       </div>
-      <div className="flex-1 min-h-[260px] w-full">
+      <div className="flex-1 min-h-[260px] w-full relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60 z-10">
+            <Spin size="large" />
+          </div>
+        )}
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
+          <BarChart data={chartData} margin={{ top: 10, right: 0, left: -25, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
             <XAxis 
               dataKey="name" 

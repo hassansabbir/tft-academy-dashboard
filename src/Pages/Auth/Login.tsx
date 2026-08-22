@@ -39,10 +39,14 @@ const Login = () => {
       if (rememberMe) {
         localStorage.setItem("authToken", accessToken || "");
         localStorage.setItem("refreshToken", refreshToken || "");
+        sessionStorage.removeItem("authToken");
+        sessionStorage.removeItem("refreshToken");
         Cookies.set("refreshToken", refreshToken || "");
       } else {
         sessionStorage.setItem("authToken", accessToken || "");
-        localStorage.setItem("refreshToken", refreshToken || "");
+        sessionStorage.setItem("refreshToken", refreshToken || "");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("refreshToken");
         Cookies.set("refreshToken", refreshToken || "");
       }
 
@@ -148,35 +152,7 @@ const Login = () => {
           </button>
         </Form.Item>
 
-        {/* Demo Login Buttons */}
-        <div className="flex gap-4 mt-6">
-          <button
-            type="button"
-            onClick={() => {
-              const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-              const payload = btoa(JSON.stringify({ role: "ADMIN" }));
-              localStorage.setItem("authToken", `${header}.${payload}.signature`);
-              navigate("/");
-              toast.success("Demo Admin Login Successful");
-            }}
-            className="w-full h-11 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition-colors"
-          >
-            Demo Admin
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-              const payload = btoa(JSON.stringify({ role: "COACH" }));
-              localStorage.setItem("authToken", `${header}.${payload}.signature`);
-              navigate("/");
-              toast.success("Demo Coach Login Successful");
-            }}
-            className="w-full h-11 bg-sidebarBg text-white rounded-lg hover:opacity-90 font-medium transition-colors"
-          >
-            Demo Coach
-          </button>
-        </div>
+
       </Form>
     </div>
   );

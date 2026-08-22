@@ -39,13 +39,17 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
   const handleLogout = (): void => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
+    localStorage.removeItem("Authorization");
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("Authorization");
     Cookies.remove("refreshToken");
     navigate("/auth/login");
   };
 
-  const isCoach = role === "COACH";
+  const isCoach = role === "CHOACH";
 
   // Coach Menu Items (from design)
   const coachMenuItems: MenuItem[] = [

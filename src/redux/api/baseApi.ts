@@ -14,7 +14,7 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const baseQuery = fetchBaseQuery({
-    // baseUrl: "http://192.168.10.8:5001/api/v1",
+    baseUrl: "http://10.10.26.180:5001/api/v1",
     prepareHeaders: (headers) => {
       const token =
         localStorage.getItem("authToken") ||
@@ -55,12 +55,13 @@ const baseQueryWithReauth: BaseQueryFn<
         typeof refreshResult.data === "object" &&
         "data" in refreshResult.data
       ) {
-        // Save the new access token to localStorage
-        localStorage.removeItem("authToken");
-        localStorage.setItem(
-          "authToken",
-          (refreshResult.data as any).data.accessToken
-        );
+        // Save the new access token to the appropriate storage
+        const newAccessToken = (refreshResult.data as any).data.accessToken;
+        if (sessionStorage.getItem("authToken")) {
+          sessionStorage.setItem("authToken", newAccessToken);
+        } else {
+          localStorage.setItem("authToken", newAccessToken);
+        }
 
         // Retry the original request with the new token
         result = await baseQuery(args, api, extraOptions);
