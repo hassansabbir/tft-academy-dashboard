@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FiCamera, FiCheck, FiCheckCircle, FiKey, FiLogOut } from "react-icons/fi";
-import { Switch, message, Spin } from "antd";
+import { Switch, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { useProfileQuery } from "../../../redux/apiSlices/authSlice";
@@ -49,7 +49,7 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"profile-info" | "security" | "preferences">("profile-info");
 
-  const { data: userData, isLoading } = useProfileQuery();
+  const { data: userData } = useProfileQuery();
 
   // Profile State
   const [firstName, setFirstName] = useState("");
@@ -194,33 +194,30 @@ const UserProfile = () => {
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1.5">
             <button
               onClick={() => setActiveTab("profile-info")}
-              className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${
-                activeTab === "profile-info"
+              className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${activeTab === "profile-info"
                   ? "bg-[#EFF4FE] text-[#1239D4] font-bold"
                   : "text-gray-500 font-medium hover:bg-gray-50"
-              }`}
+                }`}
             >
               Profile Info
             </button>
 
             <button
               onClick={() => setActiveTab("security")}
-              className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${
-                activeTab === "security"
+              className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${activeTab === "security"
                   ? "bg-[#EFF4FE] text-[#1239D4] font-bold"
                   : "text-gray-500 font-medium hover:bg-gray-50"
-              }`}
+                }`}
             >
               Security
             </button>
 
             <button
               onClick={() => setActiveTab("preferences")}
-              className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${
-                activeTab === "preferences"
+              className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${activeTab === "preferences"
                   ? "bg-[#EFF4FE] text-[#1239D4] font-bold"
                   : "text-gray-500 font-medium hover:bg-gray-50"
-              }`}
+                }`}
             >
               Preferences
             </button>

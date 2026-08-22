@@ -2,98 +2,37 @@ import { useState, useEffect } from "react";
 import { FiPlus } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { Spin, Alert } from "antd";
+import { useGetSquadsQuery } from "../../redux/apiSlices/squadSlice";
 
 interface JwtPayload {
   role?: string;
 }
 
-interface CoachSquad {
-  id: number;
-  tag: string;
-  tagBg: string;
-  progressBg: string;
-  name: string;
-  coach: string;
-  players: number;
-  attendance: string;
-  attendanceRate: number;
-  isSelected?: boolean;
-}
+const getBadgeColor = (tag: string) => {
+  const t = tag.toUpperCase();
+  if (t.includes("U14")) return "#1D4ED8"; // Blue
+  if (t.includes("U12")) return "#22C55E"; // Green
+  if (t.includes("U16")) return "#F59E0B"; // Yellow/Orange
+  if (t.includes("U18")) return "#EF4444"; // Red
+  if (t.includes("U10")) return "#FBBF24"; // Yellow
+  if (t.includes("U8") || t.includes("U08")) return "#8B5CF6"; // Purple
+  return "#3B82F6"; // Default Blue
+};
 
-const coachSquadsData: CoachSquad[] = [
-  {
-    id: 1,
-    tag: "U16",
-    tagBg: "bg-[#1D4ED8]",
-    progressBg: "bg-[#3B82F6]",
-    name: "U16 Futsal Fridays",
-    coach: "Coach: Ray Railton",
-    players: 18,
-    attendance: "92%",
-    attendanceRate: 92,
-    isSelected: true,
-  },
-  {
-    id: 2,
-    tag: "U14",
-    tagBg: "bg-[#6B21A8]",
-    progressBg: "bg-[#A855F7]",
-    name: "U14 Youth Development",
-    coach: "Coach: Ray Railton",
-    players: 16,
-    attendance: "88%",
-    attendanceRate: 88,
-  },
-  {
-    id: 3,
-    tag: "U12",
-    tagBg: "bg-[#047857]",
-    progressBg: "bg-[#10B981]",
-    name: "U12 Foundation",
-    coach: "Coach: Ray Railton",
-    players: 14,
-    attendance: "85%",
-    attendanceRate: 95,
-  },
-  {
-    id: 4,
-    tag: "U10",
-    tagBg: "bg-[#0E7490]",
-    progressBg: "bg-[#06B6D4]",
-    name: "U10 Future Goalkeeper",
-    coach: "Coach: Ray Railton",
-    players: 18,
-    attendance: "92%",
-    attendanceRate: 92,
-  },
-  {
-    id: 5,
-    tag: "U08",
-    tagBg: "bg-[#BE185D]",
-    progressBg: "bg-[#EC4899]",
-    name: "U14 TFP Girls Academy",
-    coach: "Coach: Ray Railton",
-    players: 16,
-    attendance: "88%",
-    attendanceRate: 88,
-  },
-  {
-    id: 6,
-    tag: "U06",
-    tagBg: "bg-[#C2410C]",
-    progressBg: "bg-[#F97316]",
-    name: "U12 Mini Kickers",
-    coach: "Coach: Ray Railton",
-    players: 14,
-    attendance: "85%",
-    attendanceRate: 95,
-  },
-];
+const getAgeGroupLabel = (name: string) => {
+  const match = name.match(/U\d+/i);
+  return match ? match[0].toUpperCase() : "UXX";
+};
 
 const Squads = () => {
   const navigate = useNavigate();
   const [isCoach, setIsCoach] = useState(false);
-  const [selectedSquadId, setSelectedSquadId] = useState<number>(1);
+
+  // Fetch squads from API
+  const { data: apiResponse, isLoading, isError } = useGetSquadsQuery({});
+  const squads = apiResponse?.data || [];
+  const meta = apiResponse?.meta || { total: 0 };
 
   useEffect(() => {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
@@ -108,34 +47,22 @@ const Squads = () => {
   }, []);
 
   return (
-    <div
-      className={`flex flex-col h-full p-6 pb-12 overflow-y-auto ${
-        isCoach ? "bg-[#050E21]" : "bg-[#f8faff]"
-      }`}
-    >
+    <div className="flex flex-col h-full bg-[#f8faff] p-6 pb-12 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex flex-col">
-          <h1
-            className={`text-[24px] font-bold leading-tight ${
-              isCoach ? "text-white" : "text-gray-900"
-            }`}
-          >
+          <h1 className="text-[28px] font-bold text-gray-900 leading-tight">
             Squads
           </h1>
-          <p
-            className={`text-[14px] font-medium mt-1 ${
-              isCoach ? "text-[#94A3B8]" : "text-gray-500"
-            }`}
-          >
-            Manage your assigned squads and rosters
+          <p className="text-[14px] font-medium mt-1 text-gray-500">
+            {meta.total} active squads · Season 2024/25
           </p>
         </div>
 
         {!isCoach && (
           <button
             onClick={() => navigate("/squads/add")}
-            className="bg-gradient-to-r from-[#081A4A] to-[#1239D4] hover:opacity-90 text-white px-6 py-2.5 rounded-full flex items-center gap-2 text-[15px] font-semibold transition-opacity shadow-md cursor-pointer"
+            className="bg-[#081A4A] hover:opacity-90 text-white px-6 py-2.5 rounded-full flex items-center gap-2 text-[15px] font-semibold transition-opacity shadow-md cursor-pointer"
           >
             <FiPlus size={18} strokeWidth={3} />
             <span>Create Squad</span>
@@ -143,152 +70,121 @@ const Squads = () => {
         )}
       </div>
 
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <Spin size="large" />
+        </div>
+      )}
+
+      {isError && (
+        <Alert type="error" message="Failed to load squads. Please try again later." />
+      )}
+
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {coachSquadsData.map((squad) => {
-          const isSelected = selectedSquadId === squad.id;
+      {!isLoading && !isError && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {squads.map((squad: any) => {
+            const ageGroupLabel = getAgeGroupLabel(squad.ageGroup || "");
+            const badgeColor = getBadgeColor(ageGroupLabel);
+            const coachName = squad.coachName || "Unassigned";
+            
+            const currentPlayers = squad.playersCount || 0;
+            const maxPlayers = squad.maxPlayers || 25;
+            const attendanceRate = squad.attendanceRate || "0%";
+            const schedule = squad.schedule || "Unscheduled";
+            
+            const capacityPercent = Math.min((currentPlayers / maxPlayers) * 100, 100);
 
-          return (
-            <div
-              key={squad.id}
-              onClick={() => setSelectedSquadId(squad.id)}
-              className={`rounded-2xl p-6 flex flex-col justify-between transition-all cursor-pointer shadow-sm ${
-                isCoach
-                  ? isSelected
-                    ? "bg-[#0B1B38] border-2 border-[#1239D4] shadow-md"
-                    : "bg-[#0B1B38] border border-[#162E58] hover:border-[#234580]"
-                  : "bg-white border border-gray-100 hover:border-gray-200 hover:shadow-md"
-              }`}
-            >
-              {/* Top Tag Badge */}
+            return (
               <div
-                className={`w-11 h-11 rounded-xl ${squad.tagBg} flex items-center justify-center text-white font-bold text-[13px] shadow-xs mb-4`}
+                key={squad._id}
+                className="bg-white rounded-2xl p-6 flex flex-col justify-between transition-all shadow-sm border border-gray-100 hover:shadow-md hover:border-gray-200"
               >
-                {squad.tag}
-              </div>
-
-              {/* Squad Name & Coach */}
-              <div className="flex flex-col mb-4">
-                <h3
-                  className={`text-[16px] font-bold leading-tight ${
-                    isCoach ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {squad.name}
-                </h3>
-                <span
-                  className={`text-[13px] font-medium mt-1 ${
-                    isCoach ? "text-[#94A3B8]" : "text-gray-500"
-                  }`}
-                >
-                  {squad.coach}
-                </span>
-              </div>
-
-              {/* Stats Box */}
-              <div
-                className={`rounded-xl p-4 grid grid-cols-2 gap-2 mb-4 border ${
-                  isCoach
-                    ? "bg-[#07152F] border-[#162E58]/80"
-                    : "bg-[#F9FAFC] border-gray-100"
-                }`}
-              >
-                <div className="flex flex-col">
-                  <span
-                    className={`text-[10px] font-bold tracking-wider uppercase ${
-                      isCoach ? "text-[#64748B]" : "text-gray-400"
-                    }`}
-                  >
-                    PLAYERS
-                  </span>
-                  <span
-                    className={`text-[18px] font-bold mt-0.5 ${
-                      isCoach ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {squad.players}
-                  </span>
-                </div>
-
-                <div className="flex flex-col">
-                  <span
-                    className={`text-[10px] font-bold tracking-wider uppercase ${
-                      isCoach ? "text-[#64748B]" : "text-gray-400"
-                    }`}
-                  >
-                    ATTENDANCE
-                  </span>
-                  <span
-                    className={`text-[18px] font-bold mt-0.5 ${
-                      isCoach ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {squad.attendance}
-                  </span>
-                </div>
-              </div>
-
-              {/* Attendance Progress Bar */}
-              <div className="flex flex-col mb-5">
-                <div className="flex items-center justify-between text-[12px]">
-                  <span
-                    className={`font-medium ${
-                      isCoach ? "text-[#94A3B8]" : "text-gray-500"
-                    }`}
-                  >
-                    Attendance Rate
-                  </span>
-                  <span
-                    className={`font-bold ${
-                      isCoach ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {squad.attendanceRate}%
-                  </span>
-                </div>
-
-                <div
-                  className={`w-full h-1.5 rounded-full overflow-hidden mt-1.5 ${
-                    isCoach ? "bg-[#162E58]" : "bg-gray-100"
-                  }`}
-                >
+                {/* Top Section: Badge, Title, Coach */}
+                <div className="flex gap-4 mb-6">
+                  {/* Badge */}
                   <div
-                    className={`h-full rounded-full ${squad.progressBg}`}
-                    style={{ width: `${squad.attendanceRate}%` }}
-                  />
-                </div>
-              </div>
+                    className="w-12 h-12 rounded-xl flex shrink-0 items-center justify-center text-white font-bold text-[15px] shadow-sm"
+                    style={{ backgroundColor: badgeColor }}
+                  >
+                    {ageGroupLabel}
+                  </div>
 
-              {/* Action Button */}
-              {isSelected ? (
+                  <div className="flex flex-col justify-center">
+                    <h3 className="text-[18px] font-bold text-gray-900 leading-tight">
+                      {ageGroupLabel} {squad.name}
+                    </h3>
+                    <span className="text-[14px] font-medium mt-0.5 text-gray-500">
+                      {coachName}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 mb-6 bg-gray-50/50 rounded-xl p-4">
+                  {/* Players */}
+                  <div className="flex flex-col items-center justify-center border-r border-gray-100">
+                    <span className="text-[20px] font-bold text-gray-900 leading-none">
+                      {currentPlayers}
+                    </span>
+                    <span className="text-[12px] font-medium text-gray-400 mt-1">
+                      Players
+                    </span>
+                  </div>
+                  {/* Attendance */}
+                  <div className="flex flex-col items-center justify-center border-r border-gray-100">
+                    <span className="text-[20px] font-bold text-[#22C55E] leading-none">
+                      {attendanceRate}
+                    </span>
+                    <span className="text-[12px] font-medium text-gray-400 mt-1">
+                      Attendance
+                    </span>
+                  </div>
+                  {/* Schedule */}
+                  <div className="flex flex-col items-center justify-center text-center px-2">
+                    <span className="text-[13px] font-bold text-gray-900 leading-tight">
+                      {schedule}
+                    </span>
+                    <span className="text-[12px] font-medium text-gray-400 mt-1">
+                      Schedule
+                    </span>
+                  </div>
+                </div>
+
+                {/* Squad Capacity */}
+                <div className="flex flex-col mb-6">
+                  <div className="flex items-center justify-between text-[13px] mb-2">
+                    <span className="font-medium text-gray-500">
+                      Squad capacity
+                    </span>
+                    <span className="font-bold text-gray-900">
+                      {currentPlayers}/{maxPlayers}
+                    </span>
+                  </div>
+
+                  <div className="w-full h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ 
+                        width: `${capacityPercent}%`,
+                        backgroundColor: badgeColor 
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Action Button */}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/squads/${squad.id}`);
-                  }}
-                  className="w-full bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white font-bold text-[13px] py-3 rounded-full transition-all shadow-md cursor-pointer text-center border border-blue-400/20"
+                  onClick={() => navigate(`/squads/${squad._id}`)}
+                  className="w-full bg-[#EBF1FF] hover:bg-[#e1e9fc] text-[#1D4ED8] font-bold text-[14px] py-3.5 rounded-full transition-all cursor-pointer text-center"
                 >
                   View Squad
                 </button>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/squads/${squad.id}`);
-                  }}
-                  className={`w-full bg-transparent font-bold text-[13px] py-2.5 rounded-full transition-all cursor-pointer text-center border ${
-                    isCoach
-                      ? "border-[#162E58] text-[#94A3B8] hover:border-[#3B82F6] hover:text-white"
-                      : "border-gray-200 text-gray-600 hover:border-blue-500 hover:text-blue-600"
-                  }`}
-                >
-                  View Squad
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

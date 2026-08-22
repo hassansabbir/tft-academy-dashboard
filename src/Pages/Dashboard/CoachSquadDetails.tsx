@@ -216,13 +216,12 @@ const CoachSquadDetails = () => {
       {/* Players List Table Card */}
       <div className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-6 shadow-sm flex flex-col">
         {/* Table Header Row */}
-        <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-[#162E58] text-[11px] font-bold text-[#64748B] tracking-wider uppercase mb-2">
+        <div className="grid grid-cols-8 gap-4 px-4 py-3 border-b border-[#162E58] text-[11px] font-bold text-[#64748B] tracking-wider uppercase mb-2">
           <div className="col-span-3">PLAYER</div>
           <div className="col-span-1 text-center">POSITION</div>
           <div className="col-span-1 text-center">AGE</div>
           <div className="col-span-2">ATTENDANCE</div>
           <div className="col-span-1 text-center">SCORE</div>
-          <div className="col-span-4 text-right">ACTION</div>
         </div>
 
         {/* Player Item Rows */}
@@ -231,7 +230,7 @@ const CoachSquadDetails = () => {
             filteredPlayers.map((player) => (
               <div
                 key={player.id}
-                className="grid grid-cols-12 gap-4 items-center px-4 py-3.5 border-b border-[#162E58]/40 hover:bg-[#07152F] rounded-xl transition-colors"
+                className="grid grid-cols-8 gap-4 items-center px-4 py-3.5 border-b border-[#0B1B38] hover:bg-[#0B1B38] rounded-xl transition-colors"
               >
                 {/* Player Name & Avatar */}
                 <div className="col-span-3 flex items-center gap-3">
@@ -273,41 +272,6 @@ const CoachSquadDetails = () => {
                 {/* Score */}
                 <div className="col-span-1 text-center text-[14px] font-bold text-[#10B981]">
                   {player.score.toFixed(1)}
-                </div>
-
-                {/* Actions */}
-                <div className="col-span-4 flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => navigate(`/players/${player.id}`)}
-                    className="bg-[#132A52] hover:bg-[#1C3A70] text-[#94A3B8] hover:text-white px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 border border-[#234580] transition-colors cursor-pointer"
-                  >
-                    <FiEye size={12} />
-                    <span>View</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveModal({ type: "note", player })}
-                    className="bg-[#132A52] hover:bg-[#1C3A70] text-[#94A3B8] hover:text-white px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 border border-[#234580] transition-colors cursor-pointer"
-                  >
-                    <FiFileText size={12} />
-                    <span>Add Note</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveModal({ type: "assess", player })}
-                    className="bg-[#132A52] hover:bg-[#1C3A70] text-[#94A3B8] hover:text-white px-3 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 border border-[#234580] transition-colors cursor-pointer"
-                  >
-                    <FiActivity size={12} />
-                    <span>Assess</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveModal({ type: "target", player })}
-                    className="bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 border border-blue-400/20 shadow-xs cursor-pointer"
-                  >
-                    <FiTarget size={12} />
-                    <span>Set Target</span>
-                  </button>
                 </div>
               </div>
             ))
