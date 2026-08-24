@@ -3,10 +3,14 @@ import { api } from "../api/baseApi";
 const playerSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     getPlayers: builder.query({
-      query: ({ page = 1, limit = 10 }) => ({
-        method: "GET",
-        url: `/players/?page=${page}&limit=${limit}`,
-      }),
+      query: ({ page = 1, limit = 10, squadId }: { page?: number; limit?: number; squadId?: string }) => {
+        let url = `/players/?page=${page}&limit=${limit}`;
+        if (squadId) url += `&squadId=${squadId}`;
+        return {
+          method: "GET",
+          url,
+        };
+      },
       transformResponse: (response: any) => response,
     }),
     getPlayerById: builder.query({

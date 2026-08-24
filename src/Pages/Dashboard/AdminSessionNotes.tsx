@@ -1,90 +1,60 @@
 import { useState } from "react";
-import { FiSearch, FiUser, FiCalendar, FiMoreVertical } from "react-icons/fi";
-
-const notesData = [
-  { 
-    id: 1, 
-    initials: 'MO', 
-    name: 'Marcus Okonkwo', 
-    tag: 'Positive', 
-    coach: 'James Hargreaves', 
-    date: '24 Jul 2025', 
-    content: 'Exceptional performance today. Marcus showed great movement off the ball and scored a hat-trick in the practice match. His positioning has improved significantly.',
-    color: 'bg-[#1239D4]',
-    tagStyle: 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]'
-  },
-  { 
-    id: 2, 
-    initials: 'LF', 
-    name: 'Luca Fernandez', 
-    tag: 'Improvement', 
-    coach: 'Sofia Martins', 
-    date: '23 Jul 2025', 
-    content: 'Luca needs to work on his left-foot passing accuracy. He tends to cut onto his right too often. Set a specific drill for next session.',
-    color: 'bg-[#2563EB]',
-    tagStyle: 'bg-[#EFF6FF] text-[#3B82F6] border-[#BFDBFE]'
-  },
-  { 
-    id: 3, 
-    initials: 'EN', 
-    name: 'Ethan Nwosu', 
-    tag: 'Technical', 
-    coach: 'David Okafor', 
-    date: '22 Jul 2025', 
-    content: 'Excellent reading of the game today. Ethan made four crucial interceptions and organised the defensive line very well during set pieces.',
-    color: 'bg-[#1D4ED8]',
-    tagStyle: 'bg-[#F3E8FF] text-[#9333EA] border-[#E9D5FF]'
-  },
-  { 
-    id: 4, 
-    initials: 'KA', 
-    name: 'Kofi Asante', 
-    tag: 'Behaviour', 
-    coach: 'James Hargreaves', 
-    date: '21 Jul 2025', 
-    content: 'Kofi was disruptive during team talk. Spoke with him one-to-one after session. He was receptive and apologised. Will monitor closely.',
-    color: 'bg-[#1239D4]',
-    tagStyle: 'bg-[#FFFBEB] text-[#F59E0B] border-[#FDE68A]'
-  },
-  { 
-    id: 5, 
-    initials: 'DP', 
-    name: 'Daniel Petrov', 
-    tag: 'Positive', 
-    coach: 'Marco Ricci', 
-    date: '20 Jul 2025', 
-    content: 'Outstanding leadership today. Daniel commanded the midfield with authority and was instrumental in two goals through his vision and through-balls.',
-    color: 'bg-[#1E3A8A]',
-    tagStyle: 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]'
-  },
-  { 
-    id: 6, 
-    initials: 'AW', 
-    name: 'Aiden Walsh', 
-    tag: 'Injury', 
-    coach: 'Claire Dumont', 
-    date: '19 Jul 2025', 
-    content: 'Aiden rolled his ankle in the second half. Sent to physio immediately. Recommended rest for 5-7 days. Parents informed by phone.',
-    color: 'bg-[#3B82F6]',
-    tagStyle: 'bg-[#FEF2F2] text-[#EF4444] border-[#FECACA]'
-  },
-];
+import { FiSearch, FiUser, FiCalendar } from "react-icons/fi";
+import { useAdminSessionNotesQuery } from "@/redux/apiSlices/dashboardSlice";
+import { Spin } from "antd";
 
 const filters = ['All', 'Positive', 'Improvement', 'Technical', 'Behaviour', 'Injury'];
+
+const getTagStyle = (tag: string) => {
+  switch (tag) {
+    case 'Positive': return 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]';
+    case 'Improvement': return 'bg-[#EFF6FF] text-[#3B82F6] border-[#BFDBFE]';
+    case 'Technical': return 'bg-[#F3E8FF] text-[#9333EA] border-[#E9D5FF]';
+    case 'Behaviour': return 'bg-[#FFFBEB] text-[#F59E0B] border-[#FDE68A]';
+    case 'Injury': return 'bg-[#FEF2F2] text-[#EF4444] border-[#FECACA]';
+    default: return 'bg-gray-100 text-gray-600 border-gray-200';
+  }
+};
+
+const getAvatarColor = (tag: string) => {
+  switch (tag) {
+    case 'Positive': return 'bg-[#1239D4]';
+    case 'Improvement': return 'bg-[#2563EB]';
+    case 'Technical': return 'bg-[#1D4ED8]';
+    case 'Behaviour': return 'bg-[#1239D4]';
+    case 'Injury': return 'bg-[#3B82F6]';
+    default: return 'bg-[#1E3A8A]';
+  }
+};
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
 const AdminSessionNotes = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const { data: notesData, isLoading } = useAdminSessionNotesQuery(undefined);
 
-  const filteredNotes = notesData.filter((note) => {
-    const matchesFilter = activeFilter === 'All' || note.tag === activeFilter;
-    const matchesSearch = note.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          note.content.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredNotes = (notesData || []).filter((note: any) => {
+    const matchesFilter = activeFilter === 'All' || note.category === activeFilter;
+    const playerName = `${note.playerId?.firstName || ''} ${note.playerId?.lastName || ''}`.trim();
+    const matchesSearch = playerName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (note.note && note.note.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
 
   return (
-    <div className="flex flex-col h-full bg-[#f8faff] p-6 pb-12 overflow-y-auto">
+    <div className="flex flex-col h-full bg-[#f8faff] p-6 pb-12 overflow-y-auto relative">
+      {isLoading && (
+        <div className="absolute inset-0 bg-[#f8faff]/60 flex items-center justify-center z-10">
+          <Spin />
+        </div>
+      )}
+      
       {/* Header */}
       <div className="flex flex-col mb-8">
         <h1 className="text-[24px] font-bold text-gray-900 leading-tight">Session Notes</h1>
@@ -120,43 +90,52 @@ const AdminSessionNotes = () => {
         </div>
       </div>
 
-      {/* Notes Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredNotes.map((note) => (
-          <div key={note.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col hover:shadow-md transition-shadow relative group">
-            <button className="absolute top-6 right-5 text-gray-300 hover:text-gray-600 transition-colors opacity-0 group-hover:opacity-100">
-              <FiMoreVertical size={18} />
-            </button>
-            <div className="flex items-center justify-between mb-5 pr-6">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white shrink-0 ${note.color}`}>
-                  {note.initials}
+      {/* Notes List */}
+      <div className="flex flex-col gap-4">
+        {filteredNotes.length > 0 ? filteredNotes.map((note: any) => {
+          const playerFirstName = note.playerId?.firstName || "";
+          const playerLastName = note.playerId?.lastName || "";
+          const playerName = `${playerFirstName} ${playerLastName}`.trim();
+          const initials = `${playerFirstName[0] || ""}${playerLastName[0] || ""}`;
+          
+          return (
+            <div key={note._id || note.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col hover:shadow-md transition-shadow relative">
+              <div className="flex gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-[15px] font-bold text-white shrink-0 mt-1 ${getAvatarColor(note.category)}`}>
+                  {initials}
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[15px] font-bold text-gray-900 leading-tight">{note.name}</span>
-                  <span className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-bold border mt-1 w-fit ${note.tagStyle}`}>
-                    {note.tag}
-                  </span>
+                
+                <div className="flex flex-col flex-1">
+                  <div className="flex items-center gap-3 mb-1.5">
+                    <span className="text-[16px] font-bold text-gray-900">{playerName}</span>
+                    <span className={`inline-block px-3 py-0.5 rounded-full text-[11px] font-bold border ${getTagStyle(note.category)}`}>
+                      {note.category}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-5 text-gray-400 mb-4">
+                    <div className="flex items-center gap-1.5">
+                      <FiUser size={13} className="text-gray-400" />
+                      <span className="text-[12px] font-medium">{note.coachId?.name || 'Unknown Coach'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <FiCalendar size={13} className="text-gray-400" />
+                      <span className="text-[12px] font-medium">{formatDate(note.createdAt || note.date)}</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-[14px] text-gray-700 font-medium leading-relaxed">
+                    {note.note || note.content}
+                  </p>
                 </div>
               </div>
             </div>
-            
-            <p className="text-[14px] text-gray-600 font-medium leading-relaxed mb-6 flex-1">
-              "{note.content}"
-            </p>
-            
-            <div className="flex items-center justify-between pt-5 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-gray-500">
-                <FiUser size={14} />
-                <span className="text-[13px] font-medium">{note.coach}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-500">
-                <FiCalendar size={14} />
-                <span className="text-[13px] font-medium">{note.date}</span>
-              </div>
-            </div>
+          );
+        }) : (
+          <div className="text-center py-10 text-gray-500 font-medium bg-white rounded-2xl border border-gray-100">
+            No session notes found.
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

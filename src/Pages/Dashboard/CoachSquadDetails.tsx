@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { FiChevronLeft, FiSearch, FiEye, FiFileText, FiActivity, FiTarget } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
-import { Modal, message } from "antd";
+import { useNavigate, useParams } from "react-router-dom";
+import { Modal, message, Spin } from "antd";
+import { useGetSquadByIdQuery } from "@/redux/apiSlices/squadSlice";
+import { useGetPlayersQuery } from "@/redux/apiSlices/playerSlice";
+import moment from "moment";
 
 interface Player {
   id: number;
@@ -14,91 +17,29 @@ interface Player {
   avatarColor: string;
 }
 
-const mockPlayersData: Player[] = [
-  {
-    id: 1,
-    initials: "JM",
-    name: "James Mitchell",
-    position: "ST",
-    age: 15,
-    attendanceRate: 94,
-    score: 8.2,
-    avatarColor: "bg-[#1D4ED8]",
-  },
-  {
-    id: 2,
-    initials: "MV",
-    name: "Marcus Vance",
-    position: "CM",
-    age: 15,
-    attendanceRate: 91,
-    score: 8.5,
-    avatarColor: "bg-[#7C3AED]",
-  },
-  {
-    id: 3,
-    initials: "DP",
-    name: "Daniel Petrov",
-    position: "CB",
-    age: 16,
-    attendanceRate: 96,
-    score: 8.8,
-    avatarColor: "bg-[#059669]",
-  },
-  {
-    id: 4,
-    initials: "KA",
-    name: "Kofi Asante",
-    position: "RW",
-    age: 15,
-    attendanceRate: 89,
-    score: 8.1,
-    avatarColor: "bg-[#D97706]",
-  },
-  {
-    id: 5,
-    initials: "LF",
-    name: "Luca Fernandez",
-    position: "LB",
-    age: 14,
-    attendanceRate: 92,
-    score: 7.9,
-    avatarColor: "bg-[#DB2777]",
-  },
-  {
-    id: 6,
-    initials: "EN",
-    name: "Ethan Nwosu",
-    position: "CAM",
-    age: 15,
-    attendanceRate: 95,
-    score: 8.7,
-    avatarColor: "bg-[#2563EB]",
-  },
-  {
-    id: 7,
-    initials: "OW",
-    name: "Oliver Wright",
-    position: "GK",
-    age: 16,
-    attendanceRate: 90,
-    score: 8.4,
-    avatarColor: "bg-[#4F46E5]",
-  },
-  {
-    id: 8,
-    initials: "TT",
-    name: "Tyler Brooks",
-    position: "CDM",
-    age: 15,
-    attendanceRate: 88,
-    score: 7.8,
-    avatarColor: "bg-[#0891B2]",
-  },
+const avatarColors = [
+  "bg-[#1D4ED8]",
+  "bg-[#7C3AED]",
+  "bg-[#059669]",
+  "bg-[#D97706]",
+  "bg-[#DB2777]",
+  "bg-[#2563EB]",
+  "bg-[#4F46E5]",
+  "bg-[#0891B2]",
 ];
 
 const CoachSquadDetails = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+
+  const { data: squad, isLoading: isSquadLoading } = useGetSquadByIdQuery(id as string, {
+    skip: !id,
+  });
+
+  const { data: playersResponse, isLoading: isPlayersLoading } = useGetPlayersQuery({ squadId: id, limit: 100 }, {
+    skip: !id,
+  });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [activeModal, setActiveModal] = useState<{
     type: "note" | "assess" | "target" | "view" | null;
@@ -107,7 +48,26 @@ const CoachSquadDetails = () => {
 
   const [modalInput, setModalInput] = useState("");
 
-  const filteredPlayers = mockPlayersData.filter((player) => {
+  const playersList = playersResponse?.data || [];
+  const dynamicPlayers: Player[] = playersList.map((p: any, index: number) => {
+    const name = p.fullName || p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Unknown';
+    const initials = (p.firstName && p.lastName) 
+      ? `${p.firstName[0]}${p.lastName[0]}`.toUpperCase() 
+      : name.substring(0, 2).toUpperCase();
+
+    return {
+      id: p._id || index,
+      initials,
+      name,
+      position: p.playingPosition || p.position || 'N/A',
+      age: p.age || p.ageGroup || 'N/A',
+      attendanceRate: parseInt(String(p.attendanceRate || '0').replace(/\D/g, ''), 10) || 0,
+      score: p.overallScore || p.score || 0,
+      avatarColor: avatarColors[index % avatarColors.length]
+    };
+  });
+
+  const filteredPlayers = dynamicPlayers.filter((player: Player) => {
     const term = searchTerm.toLowerCase();
     return (
       player.name.toLowerCase().includes(term) ||
@@ -115,6 +75,10 @@ const CoachSquadDetails = () => {
       player.age.toString().includes(term)
     );
   });
+
+  const averageAttendance = dynamicPlayers.length > 0
+    ? Math.round(dynamicPlayers.reduce((sum, p) => sum + p.attendanceRate, 0) / dynamicPlayers.length)
+    : 0;
 
   const handleActionSubmit = () => {
     if (!activeModal.player) return;
@@ -129,6 +93,14 @@ const CoachSquadDetails = () => {
     setModalInput("");
   };
 
+  if (isSquadLoading || isPlayersLoading) {
+    return <div className="flex items-center justify-center h-full"><Spin size="large" /></div>;
+  }
+
+  if (!squad) {
+    return <div className="flex items-center justify-center h-full text-white">Squad not found</div>;
+  }
+
   return (
     <div className="flex flex-col h-full bg-[#050E21] p-6 pb-12 overflow-y-auto">
       {/* Back Link */}
@@ -137,7 +109,7 @@ const CoachSquadDetails = () => {
         className="flex items-center gap-1.5 text-[13px] font-semibold text-[#94A3B8] hover:text-white mb-4 transition-colors cursor-pointer w-fit"
       >
         <FiChevronLeft size={16} />
-        <span>"U16 Futsal Fridays" Details</span>
+        <span>"{squad?.name || "Squad"}" Details</span>
       </button>
 
       {/* Top Header & Metrics Section */}
@@ -146,31 +118,33 @@ const CoachSquadDetails = () => {
         <div className="flex flex-col">
           <div className="flex items-center gap-3">
             <h1 className="text-[26px] font-bold text-white leading-tight">
-              U16 Futsal Fridays
+              {squad?.name || "N/A"}
             </h1>
             <div className="flex items-center gap-1.5 bg-[#0B1B38] border border-[#162E58] px-3 py-1 rounded-full">
               <span className="text-[10px] font-bold text-[#64748B] uppercase">Age Group</span>
-              <span className="text-[12px] font-bold text-white">U10_15</span>
+              <span className="text-[12px] font-bold text-white">{squad?.ageGroupId?.name || "N/A"}</span>
             </div>
           </div>
 
           <span className="text-[13px] font-medium text-[#94A3B8] mt-1">
-            Max Player: 25
+            Max Player: {squad?.maxPlayers || 0}
           </span>
 
           <div className="flex flex-wrap items-center gap-6 mt-3 text-[13px]">
             <div className="flex items-center gap-1.5">
               <span className="text-[#64748B] font-medium">Day</span>
-              <span className="text-white font-bold">Tue / Thu / Sat</span>
+              <span className="text-white font-bold">{squad?.trainingDays?.join(" / ") || "N/A"}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[#64748B] font-medium">Time</span>
-              <span className="text-[#34D399] font-bold">3PM -3:45 PM</span>
+              <span className="text-[#34D399] font-bold">
+                {squad?.sessionStartTime ? moment(squad.sessionStartTime, 'HH:mm').format('h:mm A') : "N/A"} - {squad?.sessionEndTime ? moment(squad.sessionEndTime, 'HH:mm').format('h:mm A') : "N/A"}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[#64748B] font-medium">Location</span>
               <span className="text-[#34D399] font-bold">
-                Greenfield International School - Indoors
+                {squad?.trainingVenue || "N/A"}
               </span>
             </div>
           </div>
@@ -183,7 +157,7 @@ const CoachSquadDetails = () => {
               PLAYERS
             </span>
             <span className="text-[28px] font-bold text-white leading-none mt-2">
-              18
+              {dynamicPlayers.length}
             </span>
           </div>
 
@@ -192,7 +166,7 @@ const CoachSquadDetails = () => {
               ATTENDANCE
             </span>
             <span className="text-[28px] font-bold text-white leading-none mt-2">
-              92%
+              {averageAttendance}%
             </span>
           </div>
         </div>
@@ -271,7 +245,7 @@ const CoachSquadDetails = () => {
 
                 {/* Score */}
                 <div className="col-span-1 text-center text-[14px] font-bold text-[#10B981]">
-                  {player.score.toFixed(1)}
+                  {typeof player.score === 'number' ? player.score.toFixed(1) : player.score}
                 </div>
               </div>
             ))

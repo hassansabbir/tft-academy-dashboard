@@ -38,9 +38,20 @@ const Header = () => {
 
   const getBreadcrumb = () => {
     if (location.pathname === "/") return "Dashboard";
-    const path = location.pathname.substring(1);
-    const formatted = path.split("-").join(" ");
-    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    
+    const segments = location.pathname.split("/").filter(Boolean);
+    
+    const formattedSegments = segments.map((segment) => {
+      // Check if segment looks like a MongoDB ID (24 hex chars)
+      if (/^[a-fA-F0-9]{24}$/.test(segment) || !isNaN(Number(segment))) {
+        return "Details";
+      }
+      const formatted = segment.split("-").join(" ");
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    });
+    
+    // Remove duplicate "Details" if any, just in case
+    return formattedSegments.join(" / ");
   };
 
   const getInitials = (name?: string) => {

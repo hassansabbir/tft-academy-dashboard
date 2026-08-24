@@ -53,7 +53,7 @@ const Login = () => {
       navigate("/");
       toast.success("Login successful!");
     } catch (error: any) {
-      toast.error(error?.data?.message || "An error occurred", {
+      toast.error(error?.data?.message || error?.message || (typeof error === 'string' ? error : "An error occurred"), {
         style: {
           fontSize: "18px",
           padding: "20px",

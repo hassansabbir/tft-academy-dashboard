@@ -1,26 +1,30 @@
-import { useState } from "react";
-import { FiUpload, FiPlus, FiCheck, FiEdit2, FiTrash2 } from "react-icons/fi";
-import { Modal, message } from "antd";
+import React, { useState, useRef, useMemo } from "react";
+import { FiUpload, FiPlus, FiCheck, FiEdit2, FiTrash2, FiImage } from "react-icons/fi";
+import { Modal, message, Spin } from "antd";
 import defaultLogo from "../../assets/logo.png";
+import JoditEditor from "jodit-react";
+import { imageUrl } from "@/redux/api/baseApi";
+import {
+  useGetAllAgeGroupsQuery,
+  useCreateAgeGroupMutation,
+  useUpdateAgeGroupMutation,
+  useDeleteAgeGroupMutation,
+  useGetAllBannersQuery,
+  useCreateBannerMutation,
+  useUpdateBannerMutation
+} from "@/redux/apiSlices/dashboardSlice";
 
-interface AgeGroup {
-  id: string;
-  code: string;
-  ageRange: string;
-  label: string;
-}
-
-const defaultAgeGroups: AgeGroup[] = [
-  { id: "1", code: "U3_5", ageRange: "3-5 years", label: "U3_5 (3-5 years)" },
-  { id: "2", code: "U6_9", ageRange: "6-9 years", label: "U6_9 (6-9 years)" },
-  { id: "3", code: "U6_14", ageRange: "6-14 years", label: "U6_14 (6-14 years)" },
-  { id: "4", code: "U7_13", ageRange: "7-13 years", label: "U7_13 (7-13 years)" },
-  { id: "5", code: "G7_13", ageRange: "7-13 years", label: "G7_13 (7-13 years)" },
-  { id: "6", code: "U10_15", ageRange: "10-15 years", label: "U10_15 (10-15 years)" },
+const backgroundPages = [
+  { id: 'home', name: 'Home' },
+  { id: 'development', name: 'Development' },
+  { id: 'statistics', name: 'Statistics' },
+  { id: 'profile', name: 'Profile' },
 ];
 
+type TabType = "general" | "age-groups" | "add-background" | "privacy-policy" | "terms-conditions" | "about-us";
+
 const AcademySettings = () => {
-  const [activeTab, setActiveTab] = useState<"general" | "age-groups">("general");
+  const [activeTab, setActiveTab] = useState<TabType>("general");
 
   // Profile Form State
   const [logoUrl, setLogoUrl] = useState<string>(defaultLogo);
@@ -33,14 +37,55 @@ const AcademySettings = () => {
   const [country, setCountry] = useState("United Kingdom");
   const [founded, setFounded] = useState("2018");
 
-  // Age Groups State
-  const [ageGroups, setAgeGroups] = useState<AgeGroup[]>(defaultAgeGroups);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<AgeGroup | null>(null);
-  const [groupCode, setGroupCode] = useState("");
-  const [ageRange, setAgeRange] = useState("");
+  // Background Images Local Preview State
+  const [backgrounds, setBackgrounds] = useState<Record<string, string>>({});
 
-  // Logo Change Handler
+  // Editor States
+  const [privacyPolicy, setPrivacyPolicy] = useState("");
+  const [termsConditions, setTermsConditions] = useState("");
+  const [aboutUs, setAboutUs] = useState("");
+  const editorRef = useRef(null);
+  
+  // Editor Config
+  const editorConfig = {
+    readonly: false,
+    placeholder: 'Start typings...',
+    height: 500,
+  };
+
+  // Age Groups API & State
+  const { data: ageGroupsData, isLoading: isAgeGroupsLoading } = useGetAllAgeGroupsQuery(undefined);
+  const [createAgeGroup, { isLoading: isCreating }] = useCreateAgeGroupMutation();
+  const [updateAgeGroup, { isLoading: isUpdating }] = useUpdateAgeGroupMutation();
+  const [deleteAgeGroup] = useDeleteAgeGroupMutation();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<any | null>(null);
+  const [minAge, setMinAge] = useState<string>("");
+  const [maxAge, setMaxAge] = useState<string>("");
+
+  const [previewImage, setPreviewImage] = useState<{url: string, title: string} | null>(null);
+
+  const ageGroups = ageGroupsData || [];
+
+  // Banners API
+  const { data: bannersData, isLoading: isBannersLoading } = useGetAllBannersQuery(undefined);
+  const [createBanner, { isLoading: isCreatingBanner }] = useCreateBannerMutation();
+  const [updateBanner, { isLoading: isUpdatingBanner }] = useUpdateBannerMutation();
+
+  const bannersMap = useMemo(() => {
+    const map: Record<string, any> = {};
+    if (bannersData) {
+      bannersData.forEach((b: any) => {
+        map[b.section] = b;
+      });
+    }
+    return map;
+  }, [bannersData]);
+
+  const isBannerUpdating = isCreatingBanner || isUpdatingBanner;
+
+  // Handlers
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -50,63 +95,104 @@ const AcademySettings = () => {
     }
   };
 
-  // Save General Profile
+  const handleBackgroundUpload = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show local preview immediately
+    const url = URL.createObjectURL(file);
+    setBackgrounds(prev => ({ ...prev, [id]: url }));
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('data', JSON.stringify({ name: `${id} banner`, section: id }));
+
+    try {
+      const existing = bannersMap[id];
+      if (existing) {
+        await updateBanner({ id: existing._id, formData }).unwrap();
+        message.success(`${backgroundPages.find(p => p.id === id)?.name} background updated!`);
+      } else {
+        await createBanner(formData).unwrap();
+        message.success(`${backgroundPages.find(p => p.id === id)?.name} background uploaded!`);
+      }
+    } catch (error: any) {
+      message.error(error?.data?.message || `Failed to upload ${id} background`);
+    }
+  };
+
   const handleSaveProfile = () => {
     message.success("Academy profile saved successfully!");
   };
 
-  // Open Modal for Add/Edit
+  const handleSaveContent = (tabName: string) => {
+    message.success(`${tabName} saved successfully!`);
+  };
+
+  // Age Group Handlers
   const handleOpenAddModal = () => {
     setEditingGroup(null);
-    setGroupCode("");
-    setAgeRange("");
+    setMinAge("");
+    setMaxAge("");
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (group: AgeGroup) => {
+  const handleOpenEditModal = (group: any) => {
     setEditingGroup(group);
-    setGroupCode(group.code);
-    setAgeRange(group.ageRange);
+    setMinAge(group.minAge.toString());
+    setMaxAge(group.maxAge.toString());
     setIsModalOpen(true);
   };
 
-  // Save Age Group (Add/Edit)
-  const handleSaveGroup = () => {
-    if (!groupCode.trim() || !ageRange.trim()) {
-      message.error("Please enter both group code and age range.");
+  const handleSaveGroup = async () => {
+    const min = parseInt(minAge);
+    const max = parseInt(maxAge);
+
+    if (isNaN(min) || isNaN(max)) {
+      message.error("Please enter valid numbers for minimum and maximum age.");
       return;
     }
 
-    const label = `${groupCode.trim()} (${ageRange.trim()})`;
-
-    if (editingGroup) {
-      setAgeGroups((prev) =>
-        prev.map((g) =>
-          g.id === editingGroup.id
-            ? { ...g, code: groupCode.trim(), ageRange: ageRange.trim(), label }
-            : g
-        )
-      );
-      message.success("Age group updated successfully!");
-    } else {
-      const newGroup: AgeGroup = {
-        id: Date.now().toString(),
-        code: groupCode.trim(),
-        ageRange: ageRange.trim(),
-        label,
-      };
-      setAgeGroups((prev) => [...prev, newGroup]);
-      message.success("New age group added!");
+    if (min >= max) {
+      message.error("Minimum age must be less than maximum age.");
+      return;
     }
 
-    setIsModalOpen(false);
+    try {
+      if (editingGroup) {
+        await updateAgeGroup({ id: editingGroup._id, minAge: min, maxAge: max }).unwrap();
+        message.success("Age group updated successfully!");
+      } else {
+        await createAgeGroup({ minAge: min, maxAge: max }).unwrap();
+        message.success("New age group added!");
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to save age group");
+    }
   };
 
-  // Delete Age Group
-  const handleDeleteGroup = (id: string) => {
-    setAgeGroups((prev) => prev.filter((g) => g.id !== id));
-    message.success("Age group removed.");
+  const handleDeleteGroup = async (id: string) => {
+    try {
+      await deleteAgeGroup(id).unwrap();
+      message.success("Age group removed.");
+    } catch (err: any) {
+      message.error(err?.data?.message || "Failed to delete age group");
+    }
   };
+
+  const renderTabButton = (id: TabType, label: string) => (
+    <button
+      onClick={() => setActiveTab(id)}
+      className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${
+        activeTab === id
+          ? "bg-[#EFF4FE] text-[#1239D4] font-bold"
+          : "text-gray-500 font-medium hover:bg-gray-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div className="flex flex-col h-full bg-[#f8faff] p-6 pb-12 overflow-y-auto">
@@ -122,36 +208,20 @@ const AcademySettings = () => {
       <div className="flex flex-col lg:flex-row gap-8 items-start">
         {/* Left Side Tab Navigation */}
         <div className="w-full lg:w-64 shrink-0 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1.5">
-          <button
-            onClick={() => setActiveTab("general")}
-            className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${
-              activeTab === "general"
-                ? "bg-[#EFF4FE] text-[#1239D4] font-bold"
-                : "text-gray-500 font-medium hover:bg-gray-50"
-            }`}
-          >
-            General
-          </button>
-          <button
-            onClick={() => setActiveTab("age-groups")}
-            className={`w-full px-4 py-3 rounded-xl flex items-center gap-3 text-[14px] transition-colors cursor-pointer text-left ${
-              activeTab === "age-groups"
-                ? "bg-[#EFF4FE] text-[#1239D4] font-bold"
-                : "text-gray-500 font-medium hover:bg-gray-50"
-            }`}
-          >
-            Age Groups
-          </button>
+          {renderTabButton("general", "General")}
+          {renderTabButton("age-groups", "Age Groups")}
+          {renderTabButton("add-background", "Add Background")}
+          {renderTabButton("privacy-policy", "Privacy Policy")}
+          {renderTabButton("terms-conditions", "Terms and Conditions")}
+          {renderTabButton("about-us", "About Us")}
         </div>
 
         {/* Right Content Area */}
         <div className="flex-1 w-full">
-          {activeTab === "general" ? (
-            /* General / Academy Profile View */
+          {activeTab === "general" && (
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col">
               <h2 className="text-[20px] font-bold text-gray-900 mb-6">Academy Profile</h2>
 
-              {/* Logo Upload Section */}
               <div className="flex items-center gap-5 mb-8 pb-6 border-b border-gray-100">
                 <div className="w-20 h-20 rounded-full border border-gray-200 flex items-center justify-center bg-white shadow-sm overflow-hidden p-1 shrink-0">
                   <img src={logoUrl} alt="Academy Logo" className="w-full h-full rounded-full object-cover" />
@@ -169,9 +239,7 @@ const AcademySettings = () => {
                 </div>
               </div>
 
-              {/* Profile Form */}
               <div className="flex flex-col gap-6">
-                {/* Academy Name */}
                 <div className="flex flex-col gap-2">
                   <label className="text-[13px] font-bold text-gray-900 tracking-wide">Academy Name</label>
                   <input
@@ -183,7 +251,6 @@ const AcademySettings = () => {
                   />
                 </div>
 
-                {/* Email & Phone */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-bold text-gray-900 tracking-wide">Contact Email</label>
@@ -207,7 +274,6 @@ const AcademySettings = () => {
                   </div>
                 </div>
 
-                {/* Address */}
                 <div className="flex flex-col gap-2">
                   <label className="text-[13px] font-bold text-gray-900 tracking-wide">Address</label>
                   <input
@@ -219,7 +285,6 @@ const AcademySettings = () => {
                   />
                 </div>
 
-                {/* City & Postcode */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-bold text-gray-900 tracking-wide">City</label>
@@ -243,7 +308,6 @@ const AcademySettings = () => {
                   </div>
                 </div>
 
-                {/* Country & Founded */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-bold text-gray-900 tracking-wide">Country</label>
@@ -267,7 +331,6 @@ const AcademySettings = () => {
                   </div>
                 </div>
 
-                {/* Save Button */}
                 <div className="flex justify-end mt-4">
                   <button
                     onClick={handleSaveProfile}
@@ -279,9 +342,15 @@ const AcademySettings = () => {
                 </div>
               </div>
             </div>
-          ) : (
-            /* Age Groups View */
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col">
+          )}
+
+          {activeTab === "age-groups" && (
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col relative min-h-[300px]">
+              {isAgeGroupsLoading && (
+                <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10 rounded-2xl">
+                  <Spin />
+                </div>
+              )}
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-[20px] font-bold text-gray-900">Age Groups</h2>
                 <button
@@ -293,16 +362,15 @@ const AcademySettings = () => {
                 </button>
               </div>
 
-              {/* Age Groups List */}
               <div className="flex flex-col gap-3">
-                {ageGroups.map((group) => (
+                {ageGroups.map((group: any) => (
                   <div
-                    key={group.id}
+                    key={group._id}
                     className="bg-[#F8FAFC] rounded-2xl px-6 py-4 border border-gray-100 flex items-center justify-between hover:border-gray-200 transition-all group"
                   >
                     <div className="flex items-center gap-3.5">
                       <span className="text-gray-400 font-bold text-[15px]">#</span>
-                      <span className="text-[14px] font-bold text-gray-800">{group.label}</span>
+                      <span className="text-[14px] font-bold text-gray-800">{group.name} ({group.minAge}-{group.maxAge} years)</span>
                     </div>
 
                     <div className="flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -314,7 +382,7 @@ const AcademySettings = () => {
                         <FiEdit2 size={15} />
                       </button>
                       <button
-                        onClick={() => handleDeleteGroup(group.id)}
+                        onClick={() => handleDeleteGroup(group._id)}
                         className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-white transition-colors cursor-pointer"
                         title="Delete"
                       >
@@ -323,6 +391,148 @@ const AcademySettings = () => {
                     </div>
                   </div>
                 ))}
+                {ageGroups.length === 0 && !isAgeGroupsLoading && (
+                  <div className="text-center py-8 text-gray-500 font-medium">
+                    No age groups found.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "add-background" && (
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col relative min-h-[300px]">
+              {(isBannersLoading || isBannerUpdating) && (
+                <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10 rounded-2xl">
+                  <Spin />
+                </div>
+              )}
+              <h2 className="text-[20px] font-bold text-gray-900 mb-2">App Backgrounds</h2>
+              <p className="text-[14px] text-gray-500 font-medium mb-8">Upload background images for different pages of the app.</p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                {backgroundPages.map((page) => {
+                  const localPreview = backgrounds[page.id];
+                  const serverBanner = bannersMap[page.id];
+                  const serverImageUrl = serverBanner?.image 
+                    ? (serverBanner.image.startsWith('http') ? serverBanner.image : `${imageUrl}${serverBanner.image}`) 
+                    : null;
+                  
+                  const displayImage = localPreview || serverImageUrl;
+
+                  return (
+                    <div key={page.id} className="border border-gray-100 rounded-2xl p-5 bg-[#F9FAFC] flex flex-col items-center text-center gap-4 hover:shadow-sm transition-all">
+                      <h3 className="text-[16px] font-bold text-gray-900">{page.name}</h3>
+                      
+                      <div className="aspect-[9/16] w-[200px] mx-auto rounded-2xl bg-white border border-gray-200 overflow-hidden flex items-center justify-center relative hover:border-blue-500 hover:shadow-md transition-all group">
+                        {displayImage ? (
+                          <>
+                            <img src={displayImage} alt={`${page.name} bg`} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-4 transition-opacity">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setPreviewImage({ url: displayImage, title: page.name });
+                                }}
+                                className="w-10 h-10 rounded-full bg-white text-gray-700 flex items-center justify-center hover:bg-[#1239D4] hover:text-white transition-colors shadow-sm"
+                                title="Preview"
+                              >
+                                <FiImage size={18} />
+                              </button>
+                              <label 
+                                className="w-10 h-10 rounded-full bg-white text-gray-700 flex items-center justify-center hover:bg-[#1239D4] hover:text-white transition-colors shadow-sm cursor-pointer"
+                                title="Edit Image"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <FiEdit2 size={18} />
+                                <input type="file" accept="image/*" onChange={(e) => handleBackgroundUpload(page.id, e)} className="hidden" />
+                              </label>
+                            </div>
+                          </>
+                        ) : (
+                          <label className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-400 group-hover:text-[#1239D4] transition-colors cursor-pointer">
+                            <FiImage size={32} />
+                            <span className="text-[13px] font-medium flex items-center gap-2"><FiUpload size={14} /> Upload Image</span>
+                            <input type="file" accept="image/*" onChange={(e) => handleBackgroundUpload(page.id, e)} className="hidden" />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "privacy-policy" && (
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col">
+              <h2 className="text-[20px] font-bold text-gray-900 mb-6">Privacy Policy</h2>
+              <div className="min-h-[500px]">
+                <JoditEditor
+                  ref={editorRef}
+                  value={privacyPolicy}
+                  config={editorConfig}
+                  onBlur={newContent => setPrivacyPolicy(newContent)}
+                  onChange={() => {}}
+                />
+              </div>
+              <div className="flex justify-end mt-8">
+                <button
+                  onClick={() => handleSaveContent('Privacy Policy')}
+                  className="bg-[#081A4A] hover:bg-[#07152F] text-white px-7 py-3 rounded-full flex items-center gap-2 text-[14px] font-bold shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                >
+                  <FiCheck size={16} />
+                  <span>Save Privacy Policy</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "terms-conditions" && (
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col">
+              <h2 className="text-[20px] font-bold text-gray-900 mb-6">Terms and Conditions</h2>
+              <div className="min-h-[500px]">
+                <JoditEditor
+                  ref={editorRef}
+                  value={termsConditions}
+                  config={editorConfig}
+                  onBlur={newContent => setTermsConditions(newContent)}
+                  onChange={() => {}}
+                />
+              </div>
+              <div className="flex justify-end mt-8">
+                <button
+                  onClick={() => handleSaveContent('Terms and Conditions')}
+                  className="bg-[#081A4A] hover:bg-[#07152F] text-white px-7 py-3 rounded-full flex items-center gap-2 text-[14px] font-bold shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                >
+                  <FiCheck size={16} />
+                  <span>Save Terms & Conditions</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "about-us" && (
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 flex flex-col">
+              <h2 className="text-[20px] font-bold text-gray-900 mb-6">About Us</h2>
+              <div className="min-h-[500px]">
+                <JoditEditor
+                  ref={editorRef}
+                  value={aboutUs}
+                  config={editorConfig}
+                  onBlur={newContent => setAboutUs(newContent)}
+                  onChange={() => {}}
+                />
+              </div>
+              <div className="flex justify-end mt-8">
+                <button
+                  onClick={() => handleSaveContent('About Us')}
+                  className="bg-[#081A4A] hover:bg-[#07152F] text-white px-7 py-3 rounded-full flex items-center gap-2 text-[14px] font-bold shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                >
+                  <FiCheck size={16} />
+                  <span>Save About Us</span>
+                </button>
               </div>
             </div>
           )}
@@ -336,31 +546,48 @@ const AcademySettings = () => {
         onOk={handleSaveGroup}
         onCancel={() => setIsModalOpen(false)}
         okText={editingGroup ? "Save Changes" : "Add Group"}
-        okButtonProps={{ className: "bg-[#1239D4]" }}
+        okButtonProps={{ 
+          className: "bg-[#1239D4]",
+          loading: isCreating || isUpdating
+        }}
         centered
       >
         <div className="flex flex-col gap-4 py-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-800">Group Code / Identifier</label>
+            <label className="text-[13px] font-bold text-gray-800">Minimum Age</label>
             <input
-              type="text"
-              placeholder="e.g. U12_16"
-              value={groupCode}
-              onChange={(e) => setGroupCode(e.target.value)}
+              type="number"
+              placeholder="e.g. 17"
+              value={minAge}
+              onChange={(e) => setMinAge(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-[14px] font-medium text-gray-900 focus:outline-none focus:border-blue-500"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[13px] font-bold text-gray-800">Age Range Description</label>
+            <label className="text-[13px] font-bold text-gray-800">Maximum Age</label>
             <input
-              type="text"
-              placeholder="e.g. 12-16 years"
-              value={ageRange}
-              onChange={(e) => setAgeRange(e.target.value)}
+              type="number"
+              placeholder="e.g. 19"
+              value={maxAge}
+              onChange={(e) => setMaxAge(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-[14px] font-medium text-gray-900 focus:outline-none focus:border-blue-500"
             />
           </div>
         </div>
+      </Modal>
+
+      {/* Image Preview Modal */}
+      <Modal
+        title={`${previewImage?.title} Background Preview`}
+        open={!!previewImage}
+        onCancel={() => setPreviewImage(null)}
+        footer={null}
+        centered
+        width={400}
+      >
+        {previewImage && (
+          <img src={previewImage.url} alt="Preview" className="w-full rounded-xl" />
+        )}
       </Modal>
     </div>
   );

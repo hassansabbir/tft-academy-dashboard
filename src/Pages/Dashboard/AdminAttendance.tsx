@@ -1,43 +1,43 @@
 import { useState } from "react";
 import { FiCheckCircle, FiXCircle, FiClock, FiMoreVertical } from "react-icons/fi";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-
-const metricsData = [
-  { id: 1, label: "Present Today", value: "5", icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-50" },
-  { id: 2, label: "Absent Today", value: "2", icon: FiXCircle, color: "text-red-500", bg: "bg-red-50" },
-  { id: 3, label: "Late Arrivals", value: "1", icon: FiClock, color: "text-orange-500", bg: "bg-orange-50" },
-];
-
-const tableData = [
-  { id: 1, initials: "MO", name: "Marcus Okonkwo", squad: "U14 Lions", status: "Present" },
-  { id: 2, initials: "LF", name: "Luca Fernandez", squad: "U12 Eagles", status: "Present" },
-  { id: 3, initials: "EN", name: "Ethan Nwosu", squad: "U16 Hawks", status: "Late" },
-  { id: 4, initials: "AW", name: "Aiden Walsh", squad: "U10 Falcons", status: "Absent" },
-  { id: 5, initials: "KA", name: "Kofi Asante", squad: "U14 Lions", status: "Present" },
-  { id: 6, initials: "DP", name: "Daniel Petrov", squad: "U18 Titans", status: "Present" },
-  { id: 7, initials: "RD", name: "Remi Dupont", squad: "U12 Eagles", status: "Absent" },
-  { id: 8, initials: "NK", name: "Noah Kimani", squad: "U16 Hawks", status: "Present" },
-];
-
-const chartData = [
-  { name: "Jan", value: 80 },
-  { name: "Feb", value: 76 },
-  { name: "Mar", value: 84 },
-  { name: "Apr", value: 91 },
-  { name: "May", value: 87 },
-  { name: "Jun", value: 93 },
-  { name: "Jul", value: 86 },
-];
-
-const squadBreakdown = [
-  { name: "U14 Lions", value: 93, color: "bg-[#2563EB]" },
-  { name: "U12 Eagles", value: 88, color: "bg-[#10B981]" },
-  { name: "U16 Hawks", value: 91, color: "bg-[#F59E0B]" },
-  { name: "U18 Titans", value: 87, color: "bg-[#EF4444]" },
-];
+import { useAdminAttendanceOverviewQuery } from "@/redux/apiSlices/dashboardSlice";
+import { Spin } from "antd";
 
 const AdminAttendance = () => {
   const [timeFilter, setTimeFilter] = useState("Today");
+
+  const filterMap: Record<string, string> = { "Today": "today", "This Week": "week", "Monthly": "month" };
+  const { data: overview, isLoading } = useAdminAttendanceOverviewQuery(filterMap[timeFilter]);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-full bg-[#f8faff]"><Spin size="large" /></div>;
+  }
+
+  const kpis = overview?.kpiCards || { presentToday: 0, absentToday: 0, lateToday: 0 };
+  const dynamicMetrics = [
+    { id: 1, label: "Present Today", value: kpis.presentToday, icon: FiCheckCircle, color: "text-green-500", bg: "bg-green-50" },
+    { id: 2, label: "Absent Today", value: kpis.absentToday, icon: FiXCircle, color: "text-red-500", bg: "bg-red-50" },
+    { id: 3, label: "Late Arrivals", value: kpis.lateToday, icon: FiClock, color: "text-orange-500", bg: "bg-orange-50" },
+  ];
+
+  const dynamicTable = overview?.todaysAttendance || [];
+  
+  const dynamicChart = (overview?.attendanceTrend || []).map((item: any) => ({
+    name: item.month,
+    value: item.rate
+  }));
+
+  const colors = ["bg-[#2563EB]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#EF4444]", "bg-[#8B5CF6]", "bg-[#EC4899]"];
+  const dynamicBreakdown = (overview?.squadAttendanceRates || []).map((squad: any, i: number) => ({
+    name: squad.squadName,
+    value: parseInt(String(squad.ratePercentage).replace('%',''), 10) || 0,
+    color: colors[i % colors.length]
+  }));
+
+  const formattedDate = overview?.date 
+    ? new Date(overview.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : "";
 
   const renderStatus = (status: string) => {
     switch (status) {
@@ -64,7 +64,7 @@ const AdminAttendance = () => {
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {metricsData.map((metric) => (
+        {dynamicMetrics.map((metric) => (
           <div
             key={metric.id}
             className="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 flex flex-col hover:shadow-md transition-shadow"
@@ -104,7 +104,9 @@ const AdminAttendance = () => {
         {/* Left Column - Today's Attendance Table */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
           <div className="p-6 flex items-center justify-between border-b border-gray-100">
-            <h2 className="text-[16px] font-bold text-gray-900">Today's Attendance - 25 Jul 2025</h2>
+            <h2 className="text-[16px] font-bold text-gray-900">
+              {timeFilter}'s Attendance {formattedDate && `- ${formattedDate}`}
+            </h2>
             <span className="text-[13px] font-bold text-gray-400 cursor-pointer hover:text-gray-600 transition-colors">
               View All
             </span>
@@ -126,26 +128,36 @@ const AdminAttendance = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {tableData.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50/30 transition-colors">
+                {dynamicTable.length > 0 ? dynamicTable.map((row: any, idx: number) => {
+                  const pName = row.playerName || row.fullName || row.name || "Unknown";
+                  const sName = row.squadName || row.squad || "Unknown";
+                  const pStatus = row.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1).toLowerCase() : "Unknown";
+                  return (
+                  <tr key={row._id || idx} className="hover:bg-gray-50/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[11px] font-bold shrink-0">
-                          {row.initials}
+                          {pName.substring(0, 2).toUpperCase()}
                         </div>
                         <span className="text-[14px] font-bold text-gray-900 whitespace-nowrap">
-                          {row.name}
+                          {pName}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-[14px] text-gray-600 font-medium whitespace-nowrap">
-                        {row.squad}
+                        {sName}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">{renderStatus(row.status)}</td>
+                    <td className="px-6 py-4 text-right">{renderStatus(pStatus)}</td>
                   </tr>
-                ))}
+                )}) : (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-10 text-center text-gray-500 font-medium">
+                      No attendance records found.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -163,7 +175,7 @@ const AdminAttendance = () => {
             </div>
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
+                <LineChart data={dynamicChart}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <XAxis
                     dataKey="name"
@@ -199,7 +211,7 @@ const AdminAttendance = () => {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col p-6">
             <h2 className="text-[16px] font-bold text-gray-900 mb-6">Squad Breakdown</h2>
             <div className="flex flex-col gap-5">
-              {squadBreakdown.map((squad, index) => (
+              {dynamicBreakdown.length > 0 ? dynamicBreakdown.map((squad: any, index: number) => (
                 <div key={index} className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[14px] font-bold text-gray-700">{squad.name}</span>
@@ -212,7 +224,9 @@ const AdminAttendance = () => {
                     ></div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-gray-500 font-medium text-center py-4">No data available</div>
+              )}
             </div>
           </div>
         </div>

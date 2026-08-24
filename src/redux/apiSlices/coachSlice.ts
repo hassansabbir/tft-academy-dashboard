@@ -9,7 +9,21 @@ const coachSlice = api.injectEndpoints({
       }),
       transformResponse: (response: any) => response,
     }),
+    getCoachById: builder.query({
+      query: (id: string) => ({
+        method: "GET",
+        url: `/coaches/single/${id}`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    createCoach: builder.mutation({
+      query: (formData) => ({
+        method: "POST",
+        url: `/coaches/create`,
+        body: formData,
+      }),
+    }),
   }),
 });
 
-export const { useGetCoachesQuery } = coachSlice;
+export const { useGetCoachesQuery, useGetCoachByIdQuery, useCreateCoachMutation } = coachSlice;

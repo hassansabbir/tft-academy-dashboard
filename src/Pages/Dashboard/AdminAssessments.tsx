@@ -1,21 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiSearch, FiFileText } from "react-icons/fi";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
+import { useAdminAssessmentPlayersQuery, useAdminPlayerAssessmentQuery, useAdminPlayerAssessmentHistoryQuery } from "@/redux/apiSlices/dashboardSlice";
+import { Spin } from "antd";
 
-const playersData = [
-  { id: 1, initials: 'MO', name: 'Marcus Okonkwo', squad: 'U14 Lions', score: 8.7 },
-  { id: 2, initials: 'KA', name: 'Kofi Asante', squad: 'U14 Lions', score: 8.5 },
-  { id: 3, initials: 'LF', name: 'Luca Fernandez', squad: 'U12 Eagles', score: 8.2 },
-  { id: 4, initials: 'EN', name: 'Ethan Nwosu', squad: 'U16 Hawks', score: 7.9 },
-  { id: 5, initials: 'AW', name: 'Aiden Walsh', squad: 'U10 Falcons', score: 6.8 },
-  { id: 6, initials: 'DP', name: 'Daniel Petrov', squad: 'U18 Titans', score: 9.1 },
-];
-
-const historyData = [
-  { id: 1, date: '24 Jul 2025', coach: 'James Hargreaves', score: 8.7 },
-  { id: 2, date: '15 Jun 2025', coach: 'James Hargreaves', score: 8.3 },
-  { id: 3, date: '01 May 2025', coach: 'James Hargreaves', score: 8.0 },
-];
 
 const StarRatingReadOnly = ({ value }: { value: number }) => {
   return (
@@ -58,18 +46,40 @@ const SkillRow = ({ label, value }: { label: string, value: number }) => {
 };
 
 const AdminAssessments = () => {
-  const [selectedPlayerId, setSelectedPlayerId] = useState<number>(1);
+  const { data: playersList, isLoading: isPlayersLoading } = useAdminAssessmentPlayersQuery(undefined);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (playersList && playersList.length > 0 && !selectedPlayerId) {
+      setSelectedPlayerId(playersList[0]._id);
+    }
+  }, [playersList, selectedPlayerId]);
+
+  const { data: playerDetails, isLoading: isDetailsLoading } = useAdminPlayerAssessmentQuery(selectedPlayerId || "", {
+    skip: !selectedPlayerId
+  });
+
+  const { data: playerHistory, isLoading: isHistoryLoading } = useAdminPlayerAssessmentHistoryQuery(selectedPlayerId || "", {
+    skip: !selectedPlayerId
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredPlayers = playersData.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredPlayers = (playersList || []).filter((p: any) => 
+    (p.fullName || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const groupedPlayers = filteredPlayers.reduce((acc, player) => {
-    if (!acc[player.squad]) acc[player.squad] = [];
-    acc[player.squad].push(player);
+  const groupedPlayers = filteredPlayers.reduce((acc: Record<string, any[]>, player: any) => {
+    const squad = player.squadName || "Unassigned";
+    if (!acc[squad]) acc[squad] = [];
+    acc[squad].push(player);
     return acc;
-  }, {} as Record<string, typeof playersData>);
+  }, {} as Record<string, any[]>);
 
-  const selectedPlayer = playersData.find(p => p.id === selectedPlayerId);
+  const selectedPlayerMeta = (playersList || []).find((p: any) => p._id === selectedPlayerId);
+
+  const footballSkills = playerDetails?.footballSkills || { passing: 0, dribbling: 0, shooting: 0, footballIQ: 0, speed: 0, communication: 0 };
+  const coreAreas = playerDetails?.coreAreas || { technical: 0, mentality: 0, physical: 0, psychological: 0, social: 0 };
 
   return (
     <div className="flex flex-col h-full bg-[#f8faff] p-6 pb-12 overflow-y-auto">
@@ -82,7 +92,12 @@ const AdminAssessments = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8 items-start">
         
         {/* Left Column - Player List */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[700px]">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col h-[700px] relative">
+          {isPlayersLoading && (
+            <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10 rounded-2xl">
+              <Spin />
+            </div>
+          )}
           <div className="relative mb-5 shrink-0">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
@@ -95,33 +110,33 @@ const AdminAssessments = () => {
           </div>
 
           <div className="flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
-            {Object.entries(groupedPlayers).map(([squadName, players]) => (
+            {(Object.entries(groupedPlayers) as [string, any[]][]).map(([squadName, players]) => (
               <div key={squadName} className="flex flex-col">
                 <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">{squadName}</span>
                 <div className="flex flex-col gap-2">
-                  {players.map((player) => (
+                  {players.map((player: any) => (
                     <div 
-                      key={player.id} 
-                      onClick={() => setSelectedPlayerId(player.id)}
+                      key={player._id} 
+                      onClick={() => setSelectedPlayerId(player._id)}
                       className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors border ${
-                        selectedPlayerId === player.id 
+                        selectedPlayerId === player._id 
                           ? 'border-[#1239D4] bg-blue-50' 
                           : 'border-transparent hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${
-                          selectedPlayerId === player.id ? 'bg-[#1239D4] text-white' : 'bg-gray-100 text-gray-600'
+                          selectedPlayerId === player._id ? 'bg-[#1239D4] text-white' : 'bg-gray-100 text-gray-600'
                         }`}>
-                          {player.initials}
+                          {player.firstName?.[0] || ""}{player.lastName?.[0] || ""}
                         </div>
                         <span className={`text-[14px] font-bold ${
-                          selectedPlayerId === player.id ? 'text-[#1239D4]' : 'text-gray-900'
-                        }`}>{player.name}</span>
+                          selectedPlayerId === player._id ? 'text-[#1239D4]' : 'text-gray-900'
+                        }`}>{player.fullName}</span>
                       </div>
                       <span className={`text-[13px] font-bold ${
-                        selectedPlayerId === player.id ? 'text-[#1239D4]' : 'text-gray-500'
-                      }`}>{player.score.toFixed(1)}</span>
+                        selectedPlayerId === player._id ? 'text-[#1239D4]' : 'text-gray-500'
+                      }`}>{player.overallScore?.toFixed(1) || "0.0"}</span>
                     </div>
                   ))}
                 </div>
@@ -131,47 +146,65 @@ const AdminAssessments = () => {
         </div>
 
         {/* Right Column - Assessment Details */}
-        {selectedPlayer && (
+        {selectedPlayerMeta && (
           <div className="flex flex-col gap-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex items-center justify-between">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex items-center justify-between relative overflow-hidden">
+              {isDetailsLoading && (
+                <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10">
+                  <Spin />
+                </div>
+              )}
               <div className="flex items-center gap-5">
                 <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[20px] font-bold">
-                  {selectedPlayer.initials}
+                  {selectedPlayerMeta.firstName?.[0] || ""}{selectedPlayerMeta.lastName?.[0] || ""}
                 </div>
                 <div className="flex flex-col">
-                  <h2 className="text-[20px] font-bold text-gray-900">{selectedPlayer.name}</h2>
-                  <span className="text-[14px] font-medium text-gray-500">{selectedPlayer.squad}</span>
+                  <h2 className="text-[20px] font-bold text-gray-900">{selectedPlayerMeta.fullName}</h2>
+                  <span className="text-[14px] font-medium text-gray-500">{selectedPlayerMeta.squadName}</span>
                 </div>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-[32px] font-bold text-gray-900 leading-none">{selectedPlayer.score.toFixed(1)}</span>
+                <span className="text-[32px] font-bold text-gray-900 leading-none">{playerDetails?.overallScore?.toFixed(1) || selectedPlayerMeta.overallScore?.toFixed(1) || "0.0"}</span>
                 <span className="text-[13px] font-bold text-gray-400">Current Rating</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+              {isDetailsLoading && (
+                <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10 rounded-2xl">
+                  <Spin />
+                </div>
+              )}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7 flex flex-col gap-6">
-                <h3 className="text-[16px] font-bold text-gray-900 border-b border-gray-100 pb-4">Technical Skills</h3>
+                <h3 className="text-[16px] font-bold text-gray-900 border-b border-gray-100 pb-4">Football Skills</h3>
                 <div className="flex flex-col gap-2">
-                  <SkillRow label="Passing" value={4.5} />
-                  <SkillRow label="Dribbling" value={4.0} />
-                  <SkillRow label="Shooting" value={3.5} />
-                  <SkillRow label="First Touch" value={4.0} />
+                  <SkillRow label="Passing" value={footballSkills.passing || 0} />
+                  <SkillRow label="Dribbling" value={footballSkills.dribbling || 0} />
+                  <SkillRow label="Shooting" value={footballSkills.shooting || 0} />
+                  <SkillRow label="Football IQ" value={footballSkills.footballIQ || 0} />
+                  <SkillRow label="Speed" value={footballSkills.speed || 0} />
+                  <SkillRow label="Communication" value={footballSkills.communication || 0} />
                 </div>
               </div>
               
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-7 flex flex-col gap-6">
-                <h3 className="text-[16px] font-bold text-gray-900 border-b border-gray-100 pb-4">Physical Attributes</h3>
+                <h3 className="text-[16px] font-bold text-gray-900 border-b border-gray-100 pb-4">Core Areas</h3>
                 <div className="flex flex-col gap-2">
-                  <ProgressBar label="Speed" value={8.5} />
-                  <ProgressBar label="Stamina" value={7.8} />
-                  <ProgressBar label="Strength" value={8.0} />
-                  <ProgressBar label="Agility" value={9.0} />
+                  <ProgressBar label="Technical" value={coreAreas.technical || 0} />
+                  <ProgressBar label="Mentality" value={coreAreas.mentality || 0} />
+                  <ProgressBar label="Physical" value={coreAreas.physical || 0} />
+                  <ProgressBar label="Psychological" value={coreAreas.psychological || 0} />
+                  <ProgressBar label="Social" value={coreAreas.social || 0} />
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden relative">
+              {isHistoryLoading && (
+                <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10">
+                  <Spin />
+                </div>
+              )}
               <div className="p-6 flex items-center justify-between border-b border-gray-100">
                 <h3 className="text-[16px] font-bold text-gray-900">Assessment History</h3>
               </div>
@@ -186,24 +219,30 @@ const AdminAssessments = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {historyData.map((row) => (
-                      <tr key={row.id} className="hover:bg-gray-50/30 transition-colors">
+                    {playerHistory && playerHistory.length > 0 ? playerHistory.map((row: any, idx: number) => (
+                      <tr key={row._id || idx} className="hover:bg-gray-50/30 transition-colors">
                         <td className="px-6 py-4">
-                          <span className="text-[14px] font-bold text-gray-900">{row.date}</span>
+                          <span className="text-[14px] font-bold text-gray-900">{row.formattedDate || row.date}</span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-[14px] text-gray-600 font-medium">{row.coach}</span>
+                          <span className="text-[14px] text-gray-600 font-medium">{row.coachName || "Unknown"}</span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <span className="text-[14px] font-bold text-gray-900">{row.score.toFixed(1)}</span>
+                          <span className="text-[14px] font-bold text-gray-900">{(row.overallScore || 0).toFixed(1)}</span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button className="text-gray-400 hover:text-blue-600 transition-colors">
+                          <button className="text-gray-400 hover:text-blue-600 transition-colors cursor-pointer" title={row.remarks || "View Assessment"}>
                             <FiFileText size={18} />
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    )) : (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-10 text-center text-gray-500 font-medium">
+                          No assessment history found.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
