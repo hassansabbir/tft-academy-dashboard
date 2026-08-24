@@ -20,7 +20,14 @@ const playerSlice = api.injectEndpoints({
       }),
       transformResponse: (response: any) => response,
     }),
+    getPlayersBySquad: builder.query({
+      query: (squadId: string) => ({
+        method: "GET",
+        url: `/players/squad/${squadId}`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
   }),
 });
 
-export const { useGetPlayersQuery, useGetPlayerByIdQuery } = playerSlice;
+export const { useGetPlayersQuery, useGetPlayerByIdQuery, useGetPlayersBySquadQuery } = playerSlice;

@@ -23,7 +23,21 @@ const squadSlice = api.injectEndpoints({
       }),
       transformResponse: (response: any) => response?.data,
     }),
+    getMySquads: builder.query({
+      query: () => ({
+        method: "GET",
+        url: "/squads/my-squads",
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    createSquad: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        url: "/squads/create",
+        body: data,
+      }),
+    }),
   }),
 });
 
-export const { useGetSquadsQuery, useGetCoachSquadsQuery, useGetSquadByIdQuery } = squadSlice;
+export const { useGetSquadsQuery, useGetCoachSquadsQuery, useGetSquadByIdQuery, useGetMySquadsQuery, useCreateSquadMutation } = squadSlice;

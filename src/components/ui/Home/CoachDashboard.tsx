@@ -1,5 +1,6 @@
-import { FiFileText, FiClock, FiShield, FiActivity, FiUsers, FiTarget } from "react-icons/fi";
+import { FiFileText, FiClock, FiShield, FiActivity, FiUsers, FiTarget, FiPlus } from "react-icons/fi";
 import { BiCalendarCheck as BiCalendarCheckIcon } from "react-icons/bi";
+import { Link } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -11,37 +12,43 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
-const attendanceTrendData = [
-  { month: "Jan", value: 20 },
-  { month: "Feb", value: 35 },
-  { month: "Mar", value: 45 },
-  { month: "Apr", value: 38 },
-  { month: "May", value: 30 },
-  { month: "Jun", value: 46 },
-];
-
-const squadDevData = [
-  { month: "Jan", score: 2 },
-  { month: "Feb", score: 3.5 },
-  { month: "Mar", score: 5 },
-  { month: "Apr", score: 6 },
-  { month: "May", score: 7.5 },
-  { month: "Jun", score: 9 },
-];
-
-const goalContribData = [
-  { month: "Jan", goals: 7 },
-  { month: "Feb", goals: 9 },
-  { month: "Mar", goals: 8 },
-  { month: "Apr", goals: 10 },
-  { month: "May", goals: 8.5 },
-  { month: "Jun", goals: 9.5 },
-];
+import { Spin } from "antd";
+import {
+  useCoachKpiCardsQuery,
+  useCoachAttendanceTrendQuery,
+  useCoachSquadDevelopmentQuery,
+  useCoachGoalContributionsQuery,
+} from "@/redux/apiSlices/dashboardSlice";
 
 const CoachDashboard = () => {
+  const { data: kpiData, isLoading: kpiLoading } = useCoachKpiCardsQuery(undefined);
+  const { data: attendanceData, isLoading: attLoading } = useCoachAttendanceTrendQuery(undefined);
+  const { data: squadDevData, isLoading: squadLoading } = useCoachSquadDevelopmentQuery(undefined);
+  const { data: goalData, isLoading: goalLoading } = useCoachGoalContributionsQuery(undefined);
+
+  const isLoading = kpiLoading || attLoading || squadLoading || goalLoading;
+
+  // KPI Defaults
+  const pendingNotes = kpiData?.pendingNotes || 0;
+  const upcomingSessions = kpiData?.upcomingSessions || 0;
+  const mySquadsCount = kpiData?.mySquadsCount || 0;
+  const needAssessment = kpiData?.needAssessment || 0;
+  const myPlayersCount = kpiData?.myPlayersCount || 0;
+  const attendanceTodayRate = kpiData?.attendanceTodayRate || "0%";
+  const attendanceTodayFraction = kpiData?.attendanceTodayFraction || "0 of 0 present";
+
+  const attendanceTrend = attendanceData || [];
+  const squadDevelopment = squadDevData || [];
+  const goalContributions = goalData || [];
+
   return (
-    <div className="flex flex-col gap-6 p-2 bg-[#050E21] min-h-full">
+    <div className="flex flex-col gap-6 p-2 bg-[#050E21] min-h-full relative">
+      {isLoading && (
+        <div className="absolute inset-0 bg-[#050E21]/80 z-50 flex items-center justify-center">
+          <Spin size="large" />
+        </div>
+      )}
+      
       {/* Top Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -53,6 +60,10 @@ const CoachDashboard = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-3">
+          <Link to="/players/add" className="bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white px-5 py-2.5 rounded-full text-[13px] font-bold flex items-center gap-2 border border-blue-400/20 transition-all shadow-md cursor-pointer">
+            <FiPlus size={16} />
+            <span>Add Player</span>
+          </Link>
           <button className="bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white px-5 py-2.5 rounded-full text-[13px] font-bold flex items-center gap-2 border border-blue-400/20 transition-all shadow-md cursor-pointer">
             <BiCalendarCheckIcon size={16} />
             <span>Take Attendance</span>
@@ -85,7 +96,7 @@ const CoachDashboard = () => {
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-[32px] font-bold text-white leading-none">8</span>
+            <span className="text-[32px] font-bold text-white leading-none">{pendingNotes}</span>
             <p className="text-[12px] text-[#94A3B8] font-medium mt-1.5">Need writing</p>
           </div>
         </div>
@@ -101,7 +112,7 @@ const CoachDashboard = () => {
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-[32px] font-bold text-white leading-none">2</span>
+            <span className="text-[32px] font-bold text-white leading-none">{upcomingSessions}</span>
             <p className="text-[12px] text-[#94A3B8] font-medium mt-1.5">Today remaining</p>
           </div>
         </div>
@@ -117,7 +128,7 @@ const CoachDashboard = () => {
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-[32px] font-bold text-white leading-none">3</span>
+            <span className="text-[32px] font-bold text-white leading-none">{mySquadsCount}</span>
             <p className="text-[12px] text-[#94A3B8] font-medium mt-1.5">Active squads</p>
           </div>
         </div>
@@ -133,7 +144,7 @@ const CoachDashboard = () => {
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-[32px] font-bold text-white leading-none">5</span>
+            <span className="text-[32px] font-bold text-white leading-none">{needAssessment}</span>
             <p className="text-[12px] text-[#94A3B8] font-medium mt-1.5">Overdue</p>
           </div>
         </div>
@@ -149,7 +160,7 @@ const CoachDashboard = () => {
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-[32px] font-bold text-white leading-none">48</span>
+            <span className="text-[32px] font-bold text-white leading-none">{myPlayersCount}</span>
             <p className="text-[12px] text-[#94A3B8] font-medium mt-1.5">Total registered</p>
           </div>
         </div>
@@ -165,8 +176,8 @@ const CoachDashboard = () => {
             </div>
           </div>
           <div className="mt-4">
-            <span className="text-[32px] font-bold text-white leading-none">89%</span>
-            <p className="text-[12px] text-[#94A3B8] font-medium mt-1.5">43 of 48 present</p>
+            <span className="text-[32px] font-bold text-white leading-none">{attendanceTodayRate}</span>
+            <p className="text-[12px] text-[#94A3B8] font-medium mt-1.5">{attendanceTodayFraction}</p>
           </div>
         </div>
       </div>
@@ -181,16 +192,16 @@ const CoachDashboard = () => {
           </p>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={attendanceTrendData}>
+              <LineChart data={attendanceTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#162E58" vertical={false} />
                 <XAxis dataKey="month" stroke="#64748B" tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis stroke="#64748B" tickLine={false} axisLine={false} fontSize={12} domain={[0, 50]} />
+                <YAxis stroke="#64748B" tickLine={false} axisLine={false} fontSize={12} domain={[0, 100]} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#07152F", borderColor: "#162E58", borderRadius: "8px", color: "#fff" }}
                 />
                 <Line
                   type="monotone"
-                  dataKey="value"
+                  dataKey="rate"
                   stroke="#3B82F6"
                   strokeWidth={3}
                   dot={false}
@@ -208,7 +219,7 @@ const CoachDashboard = () => {
           </p>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={squadDevData}>
+              <LineChart data={squadDevelopment}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#162E58" vertical={false} />
                 <XAxis dataKey="month" stroke="#64748B" tickLine={false} axisLine={false} fontSize={12} />
                 <YAxis stroke="#64748B" tickLine={false} axisLine={false} fontSize={12} domain={[0, 10]} />
@@ -235,14 +246,15 @@ const CoachDashboard = () => {
           </p>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={goalContribData}>
+              <BarChart data={goalContributions}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#162E58" vertical={false} />
                 <XAxis dataKey="month" stroke="#64748B" tickLine={false} axisLine={false} fontSize={12} />
-                <YAxis stroke="#64748B" tickLine={false} axisLine={false} fontSize={12} domain={[0, 10]} />
+                <YAxis stroke="#64748B" tickLine={false} axisLine={false} fontSize={12} domain={[0, 'auto']} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#07152F", borderColor: "#162E58", borderRadius: "8px", color: "#fff" }}
                 />
                 <Bar dataKey="goals" fill="#F59E0B" radius={[4, 4, 0, 0]} barSize={14} />
+                <Bar dataKey="assists" fill="#10B981" radius={[4, 4, 0, 0]} barSize={14} />
               </BarChart>
             </ResponsiveContainer>
           </div>

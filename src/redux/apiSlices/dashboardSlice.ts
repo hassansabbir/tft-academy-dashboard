@@ -181,6 +181,125 @@ const dashboardSlice = api.injectEndpoints({
       }),
       invalidatesTags: ['Banners'],
     }),
+    coachKpiCards: builder.query({
+      query: () => ({
+        method: "GET",
+        url: `/dashboard/coach/kpi-cards`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    coachAttendanceTrend: builder.query({
+      query: () => ({
+        method: "GET",
+        url: `/dashboard/coach/attendance-trend`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    coachSquadDevelopment: builder.query({
+      query: () => ({
+        method: "GET",
+        url: `/dashboard/coach/squad-development`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    coachGoalContributions: builder.query({
+      query: () => ({
+        method: "GET",
+        url: `/dashboard/coach/goal-contributions`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    submitAttendance: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        url: `/attendance/submit-register`,
+        body: data,
+      }),
+    }),
+    getSquadAttendanceRegister: builder.query({
+      query: ({ squadId, date }) => ({
+        method: "GET",
+        url: `/attendance/squad-register/${squadId}?date=${date}`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    getCoachPlayerLatestAssessment: builder.query({
+      query: (playerId: string) => ({
+        method: "GET",
+        url: `/assessment/coach-player-latest/${playerId}`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    saveAssessment: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        url: `/assessment/save`,
+        body: data,
+      }),
+    }),
+    getCoachTargets: builder.query({
+      query: ({ page = 1, limit = 100 }) => ({
+        method: "GET",
+        url: `/targets/coach-targets?page=${page}&limit=${limit}`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    createTarget: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        url: `/targets/create`,
+        body: data,
+      }),
+    }),
+    updateTargetProgress: builder.mutation({
+      query: ({ id, ...data }) => ({
+        method: "PATCH",
+        url: `/targets/update-progress/${id}`,
+        body: data,
+      }),
+    }),
+    getCoachSessionNotes: builder.query({
+      query: () => ({
+        method: "GET",
+        url: `/session-notes/coach-notes`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    createCoachSessionNote: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        url: `/session-notes/create`,
+        body: data,
+      }),
+    }),
+    updateCoachSessionNote: builder.mutation({
+      query: ({ id, ...data }) => ({
+        method: "PATCH",
+        url: `/session-notes/update/${id}`,
+        body: data,
+      }),
+    }),
+    getCoachAchievements: builder.query({
+      query: () => ({
+        method: "GET",
+        url: `/achievements/coach-achievements`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    getCoachAchievementsSummary: builder.query({
+      query: () => ({
+        method: "GET",
+        url: `/achievements/coach-achievements/summary`,
+      }),
+      transformResponse: (response: any) => response?.data,
+    }),
+    createCoachAchievement: builder.mutation({
+      query: (data) => ({
+        method: "POST",
+        url: `/achievements/create`,
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -208,4 +327,21 @@ export const {
   useGetAllBannersQuery,
   useCreateBannerMutation,
   useUpdateBannerMutation,
+  useCoachKpiCardsQuery,
+  useCoachAttendanceTrendQuery,
+  useCoachSquadDevelopmentQuery,
+  useCoachGoalContributionsQuery,
+  useSubmitAttendanceMutation,
+  useGetSquadAttendanceRegisterQuery,
+  useGetCoachPlayerLatestAssessmentQuery,
+  useSaveAssessmentMutation,
+  useGetCoachTargetsQuery,
+  useCreateTargetMutation,
+  useUpdateTargetProgressMutation,
+  useGetCoachSessionNotesQuery,
+  useCreateCoachSessionNoteMutation,
+  useUpdateCoachSessionNoteMutation,
+  useGetCoachAchievementsQuery,
+  useGetCoachAchievementsSummaryQuery,
+  useCreateCoachAchievementMutation,
 } = dashboardSlice;

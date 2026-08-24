@@ -14,7 +14,8 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const baseQuery = fetchBaseQuery({
-    baseUrl: "http://10.10.26.180:5001/api/v1",
+    // baseUrl: "http://10.10.26.180:5001/api/v1",
+    baseUrl: "https://rakibur5001.binarybards.online/api/v1",
     prepareHeaders: (headers) => {
       const token =
         localStorage.getItem("authToken") ||
@@ -98,9 +99,10 @@ const baseQueryWithReauth: BaseQueryFn<
 export const api = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Banner", "AdminData"],
+  tagTypes: ["Banner", "AdminData", "AgeGroups", "Banners"],
   endpoints: () => ({}),
 });
 
 // Export the image URL as a constant
-export const imageUrl = "http://10.10.26.180:5001/";
+// export const imageUrl = "http://10.10.26.180:5001/";
+export const imageUrl = "https://rakibur5001.binarybards.online/";

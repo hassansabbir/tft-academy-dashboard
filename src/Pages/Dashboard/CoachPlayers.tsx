@@ -1,137 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FiSearch, FiChevronDown } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { Spin } from "antd";
+import { useGetMySquadsQuery } from "@/redux/apiSlices/squadSlice";
+import { useGetPlayersBySquadQuery } from "@/redux/apiSlices/playerSlice";
+import { imageUrl } from "@/redux/api/baseApi";
 
-const playersData = [
-  {
-    id: "1",
-    firstName: "James",
-    lastName: "Mitchell",
-    initials: "JM",
-    color: "bg-[#2563EB]",
-    position: "ST",
-    squad: "U16 Futsal Fridays",
-    age: 15,
-    attendance: 94,
-    score: 8.2,
-  },
-  {
-    id: "2",
-    firstName: "Leon",
-    lastName: "Williams",
-    initials: "LW",
-    color: "bg-[#8B5CF6]",
-    position: "CM",
-    squad: "U16 Futsal Fridays",
-    age: 16,
-    attendance: 88,
-    score: 7.8,
-  },
-  {
-    id: "3",
-    firstName: "Tyler",
-    lastName: "Brooks",
-    initials: "TB",
-    color: "bg-[#10B981]",
-    position: "CB",
-    squad: "U16 Futsal Fridays",
-    age: 15,
-    attendance: 92,
-    score: 7.2,
-  },
-  {
-    id: "4",
-    firstName: "Kai",
-    lastName: "Robertson",
-    initials: "KR",
-    color: "bg-[#F59E0B]",
-    position: "GK",
-    squad: "U16 Futsal Fridays",
-    age: 16,
-    attendance: 97,
-    score: 8.7,
-  },
-  {
-    id: "5",
-    firstName: "Aiden",
-    lastName: "Clarke",
-    initials: "AC",
-    color: "bg-[#EF4444]",
-    position: "LW",
-    squad: "U16 Futsal Fridays",
-    age: 15,
-    attendance: 85,
-    score: 6.9,
-  },
-  {
-    id: "6",
-    firstName: "Noah",
-    lastName: "Patel",
-    initials: "NP",
-    color: "bg-[#06B6D4]",
-    position: "RB",
-    squad: "U14 Youth Development",
-    age: 13,
-    attendance: 90,
-    score: 6.5,
-  },
-  {
-    id: "7",
-    firstName: "Ethan",
-    lastName: "Jordan",
-    initials: "EJ",
-    color: "bg-[#D946EF]",
-    position: "CAM",
-    squad: "U14 Youth Development",
-    age: 14,
-    attendance: 88,
-    score: 7.1,
-  },
-  {
-    id: "8",
-    firstName: "Marcus",
-    lastName: "Owen",
-    initials: "MO",
-    color: "bg-[#14B8A6]",
-    position: "LB",
-    squad: "U12 Foundation",
-    age: 11,
-    attendance: 82,
-    score: 5.8,
-  },
-  {
-    id: "9",
-    firstName: "Ryan",
-    lastName: "Fletcher",
-    initials: "RF",
-    color: "bg-[#E11D48]",
-    position: "CDM",
-    squad: "U16 Futsal Fridays",
-    age: 15,
-    attendance: 91,
-    score: 7.0,
-  },
-  {
-    id: "10",
-    firstName: "Oscar",
-    lastName: "Hughes",
-    initials: "OH",
-    color: "bg-[#F97316]",
-    position: "RW",
-    squad: "U14 Youth Development",
-    age: 14,
-    attendance: 86,
-    score: 6.3,
-  },
-];
+const getInitials = (name: string) => {
+  if (!name) return "??";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
+};
 
 const CoachPlayers = () => {
   const [search, setSearch] = useState("");
+  const [selectedSquad, setSelectedSquad] = useState<string>("");
+
+  // API Queries
+  const { data: mySquads, isLoading: isLoadingSquads } = useGetMySquadsQuery(undefined);
+  const { data: players, isLoading: isLoadingPlayers, isFetching } = useGetPlayersBySquadQuery(selectedSquad, { skip: !selectedSquad });
+
+  // Set default squad when squads load
+  useEffect(() => {
+    if (mySquads?.length > 0 && !selectedSquad) {
+      setSelectedSquad(mySquads[0]._id);
+    }
+  }, [mySquads, selectedSquad]);
 
   const getScoreColor = (score: number) => {
     if (score >= 8.0) return "text-[#10B981]"; // Green
     if (score >= 7.0) return "text-[#F59E0B]"; // Yellow/Orange
-    return "text-[#9CA3AF]"; // Gray/Whiteish for lower scores, but image shows white/gray
+    return "text-[#9CA3AF]"; // Gray/Whiteish
   };
 
   const getAttendanceColor = (att: number) => {
@@ -139,8 +42,28 @@ const CoachPlayers = () => {
     return "bg-[#F59E0B]";
   };
 
+  const filteredPlayers = useMemo(() => {
+    if (!players) return [];
+    return players.filter((player: any) => {
+      const term = search.toLowerCase();
+      const name = player.fullName || `${player.firstName} ${player.lastName}`;
+      const position = player.playingPosition || "";
+      return name.toLowerCase().includes(term) || position.toLowerCase().includes(term);
+    });
+  }, [players, search]);
+
+  const selectedSquadName = mySquads?.find((s: any) => s._id === selectedSquad)?.name || "Squad";
+  const selectedAgeGroup = mySquads?.find((s: any) => s._id === selectedSquad)?.ageGroupId?.name?.split('_')[0] || "";
+  const fullSquadLabel = selectedAgeGroup ? `${selectedAgeGroup} ${selectedSquadName}` : selectedSquadName;
+
   return (
-    <div className="flex flex-col h-full bg-[#0B1221] p-6 text-white overflow-y-auto">
+    <div className="flex flex-col h-full bg-[#0B1221] p-6 text-white overflow-y-auto relative">
+      {(isLoadingSquads) && (
+        <div className="absolute inset-0 bg-[#0B1221]/80 z-50 flex items-center justify-center">
+          <Spin size="large" />
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1">Players</h1>
@@ -159,14 +82,34 @@ const CoachPlayers = () => {
             className="w-full bg-[#111C35] text-white pl-11 pr-4 py-2.5 rounded-full border border-gray-700/50 focus:outline-none focus:border-blue-500 text-sm placeholder-gray-500"
           />
         </div>
-        <div className="w-full md:w-auto bg-[#111C35] border border-gray-700/50 px-4 py-2.5 rounded-full flex items-center justify-between gap-3 cursor-pointer">
-          <span className="text-sm font-medium text-gray-300">U14 Youth Development</span>
-          <FiChevronDown className="text-gray-400" />
+        
+        <div className="relative w-full md:w-auto">
+          <select
+            value={selectedSquad}
+            onChange={(e) => setSelectedSquad(e.target.value)}
+            className="w-full bg-[#111C35] border border-gray-700/50 text-gray-300 text-sm font-medium px-4 py-2.5 pr-10 rounded-full appearance-none focus:outline-none focus:border-blue-500 cursor-pointer"
+          >
+            {mySquads?.map((squad: any) => (
+              <option key={squad._id} value={squad._id}>
+                {squad.ageGroupId?.name?.split('_')[0]} {squad.name}
+              </option>
+            ))}
+            {(!mySquads || mySquads.length === 0) && (
+              <option value="">No squads available</option>
+            )}
+          </select>
+          <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
       </div>
 
       {/* Table Section */}
-      <div className="bg-[#111C35] rounded-2xl border border-gray-800/60 overflow-hidden">
+      <div className="bg-[#111C35] rounded-2xl border border-gray-800/60 overflow-hidden relative min-h-[300px]">
+        {(isLoadingPlayers || isFetching) && (
+          <div className="absolute inset-0 bg-[#111C35]/60 z-10 flex items-center justify-center">
+            <Spin />
+          </div>
+        )}
+
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-gray-800/60 text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -179,52 +122,71 @@ const CoachPlayers = () => {
             </tr>
           </thead>
           <tbody>
-            {playersData.map((player) => (
-              <tr
-                key={player.id}
-                className="border-b border-gray-800/60 hover:bg-gray-800/30 transition-colors group cursor-pointer"
-              >
-                <td className="py-4 px-6">
-                  <Link to={`/players/${player.id}`} className="flex items-center gap-3">
-                    <div
-                      className={`w-9 h-9 rounded-full ${player.color} flex items-center justify-center text-white font-bold text-sm`}
-                    >
-                      {player.initials}
-                    </div>
-                    <span className="text-sm font-bold text-gray-100 group-hover:text-blue-400 transition-colors">
-                      {player.firstName} {player.lastName}
-                    </span>
-                  </Link>
-                </td>
-                <td className="py-4 px-4 text-center">
-                  <span className="inline-block px-3 py-1 rounded-full bg-[#1A2C56] text-[#60A5FA] text-xs font-bold border border-blue-900/30">
-                    {player.position}
-                  </span>
-                </td>
-                <td className="py-4 px-4 text-center">
-                  <span className="text-sm text-gray-400 font-medium">{player.squad}</span>
-                </td>
-                <td className="py-4 px-4 text-center">
-                  <span className="text-sm text-gray-400 font-medium">{player.age}</span>
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${getAttendanceColor(player.attendance)}`}
-                        style={{ width: `${player.attendance}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-sm font-bold text-gray-200">{player.attendance}%</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6 text-center">
-                  <span className={`text-sm font-bold ${getScoreColor(player.score)}`}>
-                    {player.score.toFixed(1)}
-                  </span>
+            {!isLoadingPlayers && !isFetching && filteredPlayers.length === 0 && (
+              <tr>
+                <td colSpan={6} className="py-8 text-center text-gray-500">
+                  No players found in this squad.
                 </td>
               </tr>
-            ))}
+            )}
+
+            {filteredPlayers.map((player: any) => {
+              const name = player.fullName || `${player.firstName} ${player.lastName}`;
+              const attString = player.attendanceRate || "0%";
+              const attNumber = parseInt(attString.replace('%', ''), 10) || 0;
+              const score = typeof player.overallScore === 'number' ? player.overallScore : parseFloat(player.overallScore) || 0;
+
+              return (
+                <tr
+                  key={player._id}
+                  className="border-b border-gray-800/60 hover:bg-gray-800/30 transition-colors group cursor-pointer"
+                >
+                  <td className="py-4 px-6">
+                    <Link to={`/players/${player._id}`} className="flex items-center gap-3">
+                      <div className="w-9 h-9 shrink-0">
+                        {player.image ? (
+                          <img src={player.image.startsWith('http') ? player.image : `${imageUrl}${player.image}`} alt={name} className="w-full h-full object-cover rounded-full" />
+                        ) : (
+                          <div className="w-full h-full rounded-full bg-[#1E4ED8] flex items-center justify-center text-white font-bold text-sm">
+                            {getInitials(name)}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm font-bold text-gray-100 group-hover:text-blue-400 transition-colors">
+                        {name}
+                      </span>
+                    </Link>
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    <span className="inline-block px-3 py-1 rounded-full bg-[#1A2C56] text-[#60A5FA] text-xs font-bold border border-blue-900/30">
+                      {player.playingPosition || "N/A"}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    <span className="text-sm text-gray-400 font-medium">{fullSquadLabel}</span>
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    <span className="text-sm text-gray-400 font-medium">{player.age || "-"}</span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${getAttendanceColor(attNumber)}`}
+                          style={{ width: `${Math.min(attNumber, 100)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-bold text-gray-200">{attString}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <span className={`text-sm font-bold ${getScoreColor(score)}`}>
+                      {score.toFixed(1)}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

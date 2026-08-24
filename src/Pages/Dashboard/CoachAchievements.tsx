@@ -5,106 +5,43 @@ import { FaStar, FaMedal } from "react-icons/fa";
 import { MdEmojiEvents } from "react-icons/md";
 import { BsPinMap } from "react-icons/bs";
 import { jwtDecode } from "jwt-decode";
-import { message } from "antd";
+import { message, Spin } from "antd";
+import {
+  useGetCoachAchievementsQuery,
+  useGetCoachAchievementsSummaryQuery,
+  useCreateCoachAchievementMutation
+} from "@/redux/apiSlices/dashboardSlice";
+import { useGetMySquadsQuery } from "@/redux/apiSlices/squadSlice";
+import { useGetPlayersBySquadQuery } from "@/redux/apiSlices/playerSlice";
 
 interface JwtPayload {
   role?: string;
 }
 
-interface AchievementItem {
-  id: number;
-  iconType: "trophy" | "star" | "ribbon" | "medal" | "pin";
-  title: string;
-  playerInitials: string;
-  playerName: string;
-  playerAvatarBg: string;
-  eventSubtitle: string;
-  date: string;
-}
-
-const mockMetricsData = [
-  { id: 1, label: "Total Awards", value: "24", color: "text-[#FBBF24]" },
-  { id: 2, label: "POM Awards", value: "8", color: "text-[#3B82F6]" },
-  { id: 3, label: "Tournament", value: "3", color: "text-[#A855F7]" },
-  { id: 4, label: "Academy Awards", value: "5", color: "text-[#10B981]" },
-  { id: 5, label: "Team Awards", value: "4", color: "text-[#06B6D4]" },
-  { id: 6, label: "Milestones", value: "4", color: "text-[#F59E0B]" },
-];
-
-const mockTrophiesData: AchievementItem[] = [
-  {
-    id: 1,
-    iconType: "trophy",
-    title: "Player of the Match",
-    playerInitials: "JM",
-    playerName: "James Mitchell",
-    playerAvatarBg: "bg-[#2563EB]",
-    eventSubtitle: "vs Riverside FC",
-    date: "Jan 18, 2025",
-  },
-  {
-    id: 2,
-    iconType: "star",
-    title: "Player of the Week",
-    playerInitials: "KR",
-    playerName: "Kai Robertson",
-    playerAvatarBg: "bg-[#D97706]",
-    eventSubtitle: "Week 15 Training",
-    date: "Jan 14, 2025",
-  },
-  {
-    id: 3,
-    iconType: "ribbon",
-    title: "Academy Award",
-    playerInitials: "LW",
-    playerName: "Leon Williams",
-    playerAvatarBg: "bg-[#7C3AED]",
-    eventSubtitle: "Best Attitude Q4 2024",
-    date: "Jan 05, 2025",
-  },
-  {
-    id: 4,
-    iconType: "medal",
-    title: "Tournament Award",
-    playerInitials: "EJ",
-    playerName: "Ethan Jordan",
-    playerAvatarBg: "bg-[#9333EA]",
-    eventSubtitle: "City Cup Final",
-    date: "Dec 22, 2024",
-  },
-  {
-    id: 5,
-    iconType: "pin",
-    title: "Milestone",
-    playerInitials: "NP",
-    playerName: "Noah Patel",
-    playerAvatarBg: "bg-[#0891B2]",
-    eventSubtitle: "50 Academy Appearances",
-    date: "Dec 15, 2024",
-  },
-  {
-    id: 6,
-    iconType: "medal",
-    title: "Team Award",
-    playerInitials: "TB",
-    playerName: "Tyler Brooks",
-    playerAvatarBg: "bg-[#059669]",
-    eventSubtitle: "Defensive Player—Month",
-    date: "Dec 10, 2024",
-  },
-];
-
 const Achievements = () => {
   const [isCoach, setIsCoach] = useState(false);
-  const [trophies, setTrophies] = useState<AchievementItem[]>(mockTrophiesData);
+
+  // Fetch APIs
+  const { data: achievementsResponse, isLoading: isLoadingAchievements, refetch: refetchAchievements } = useGetCoachAchievementsQuery(undefined);
+  const { data: summaryResponse, isLoading: isLoadingSummary, refetch: refetchSummary } = useGetCoachAchievementsSummaryQuery(undefined);
+  const [createAchievement, { isLoading: isCreating }] = useCreateCoachAchievementMutation();
+
+  const achievements = achievementsResponse || [];
+  const summary = summaryResponse || {};
+
+  // Squad and Player API for Modal
+  const { data: mySquads } = useGetMySquadsQuery(undefined);
 
   // Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedPlayer, setSelectedPlayer] = useState("James Mitchell");
+  const [selectedSquad, setSelectedSquad] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState("");
   const [awardType, setAwardType] = useState("Player of the Match");
   const [matchEvent, setMatchEvent] = useState("");
   const [description, setDescription] = useState("");
-  const [awardDate, setAwardDate] = useState("2025-01-18");
+  const [awardDate, setAwardDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const { data: players } = useGetPlayersBySquadQuery(selectedSquad, { skip: !selectedSquad });
 
   useEffect(() => {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
@@ -118,60 +55,123 @@ const Achievements = () => {
     }
   }, []);
 
-  const handleAddAchievement = () => {
-    const iconTypeMap: Record<string, AchievementItem["iconType"]> = {
-      "Player of the Match": "trophy",
-      "Player of the Week": "star",
-      "Academy Award": "ribbon",
-      "Tournament Award": "medal",
-      Milestone: "pin",
-      "Team Award": "medal",
-    };
+  // Default squad
+  useEffect(() => {
+    if (mySquads?.length > 0 && !selectedSquad) {
+      setSelectedSquad(mySquads[0]._id);
+    }
+  }, [mySquads, selectedSquad]);
 
-    const newObj: AchievementItem = {
-      id: Date.now(),
-      iconType: iconTypeMap[awardType] || "trophy",
-      title: awardType,
-      playerInitials: selectedPlayer
-        .split(" ")
-        .map((n) => n[0])
-        .join(""),
-      playerName: selectedPlayer,
-      playerAvatarBg: "bg-[#2563EB]",
-      eventSubtitle: matchEvent || "Academy Milestone",
-      date: awardDate ? new Date(awardDate).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "Jan 18, 2025",
-    };
+  // Default player
+  useEffect(() => {
+    if (players?.length > 0) {
+      const currentPlayerExists = players.find((p: any) => p._id === selectedPlayer);
+      if (!currentPlayerExists) {
+        setSelectedPlayer(players[0]._id);
+      }
+    } else {
+      setSelectedPlayer("");
+    }
+  }, [players, selectedSquad]);
 
-    setTrophies([newObj, ...trophies]);
-    setIsAddModalOpen(false);
+  const handleOpenAddModal = () => {
+    if (mySquads?.length > 0) setSelectedSquad(mySquads[0]._id);
+    setAwardType("Player of the Match");
     setMatchEvent("");
     setDescription("");
-    message.success("Achievement added successfully!");
+    setAwardDate(new Date().toISOString().split('T')[0]);
+    setIsAddModalOpen(true);
   };
 
-  const renderTrophyIcon = (type: AchievementItem["iconType"]) => {
+  const handleAddAchievement = async () => {
+    if (!selectedPlayer) {
+      message.error("Please select a player.");
+      return;
+    }
+    if (!matchEvent.trim()) {
+      message.error("Please enter a match or event name.");
+      return;
+    }
+    if (!description.trim()) {
+      message.error("Please enter a description.");
+      return;
+    }
+    if (!awardDate) {
+      message.error("Please select a date.");
+      return;
+    }
+
+    try {
+      await createAchievement({
+        playerId: selectedPlayer,
+        awardType,
+        matchEvent,
+        description,
+        date: awardDate
+      }).unwrap();
+
+      message.success("Achievement added successfully!");
+      setIsAddModalOpen(false);
+      refetchAchievements();
+      refetchSummary();
+    } catch (error: any) {
+      message.error(error.data?.message || "Failed to create achievement.");
+    }
+  };
+
+  const renderTrophyIcon = (type: string) => {
     switch (type) {
-      case "trophy":
+      case "Player of the Match":
         return <BiTrophy className="text-[#EAB308]" size={26} />;
-      case "star":
+      case "Player of the Week":
         return <FaStar className="text-[#EAB308]" size={24} />;
-      case "ribbon":
+      case "Academy Award":
         return <MdEmojiEvents className="text-[#EAB308]" size={26} />;
-      case "medal":
+      case "Tournament Award":
         return <FaMedal className="text-[#EAB308]" size={24} />;
-      case "pin":
+      case "Team Award":
+        return <FaMedal className="text-[#EAB308]" size={24} />;
+      case "Milestone":
         return <BsPinMap className="text-[#EAB308]" size={22} />;
       default:
         return <BiTrophy className="text-[#EAB308]" size={26} />;
     }
   };
 
+  const getAvatarBg = (type: string) => {
+    switch (type) {
+      case "Player of the Match": return "bg-[#2563EB]";
+      case "Player of the Week": return "bg-[#D97706]";
+      case "Academy Award": return "bg-[#7C3AED]";
+      case "Tournament Award": return "bg-[#9333EA]";
+      case "Milestone": return "bg-[#0891B2]";
+      case "Team Award": return "bg-[#059669]";
+      default: return "bg-[#2563EB]";
+    }
+  };
+
+  const metricsData = [
+    { id: 1, label: "Total Awards", value: summary.total || 0, color: "text-[#FBBF24]" },
+    { id: 2, label: "POM Awards", value: summary.pomCount || 0, color: "text-[#3B82F6]" },
+    { id: 3, label: "Tournament", value: summary.tournamentCount || 0, color: "text-[#A855F7]" },
+    { id: 4, label: "Academy Awards", value: summary.academyCount || 0, color: "text-[#10B981]" },
+    { id: 5, label: "Team Awards", value: summary.teamCount || 0, color: "text-[#06B6D4]" },
+    { id: 6, label: "Milestones", value: summary.milestoneCount || 0, color: "text-[#F59E0B]" },
+  ];
+
+  const isLoading = isLoadingAchievements || isLoadingSummary;
+
   return (
     <div
-      className={`flex flex-col h-full p-6 pb-12 overflow-y-auto ${
-        isCoach ? "bg-[#050E21]" : "bg-[#050E21]"
-      }`}
+      className={`flex flex-col h-full p-6 pb-12 overflow-y-auto relative ${isCoach ? "bg-[#050E21]" : "bg-[#050E21]"
+        }`}
     >
+      {isLoading && (
+        <div className="absolute inset-0 bg-[#050E21]/60 z-50 flex items-center justify-center">
+          <Spin size="large" />
+        </div>
+      )}
+
       {/* Header & Add Action Button */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
@@ -182,7 +182,7 @@ const Achievements = () => {
         </div>
 
         <button
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={handleOpenAddModal}
           className="bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white font-bold px-6 py-2.5 rounded-full flex items-center gap-2 text-[14px] shadow-md transition-all cursor-pointer border border-blue-400/20"
         >
           <FiPlus size={18} />
@@ -192,7 +192,7 @@ const Achievements = () => {
 
       {/* Metrics Summary Row (6 Cards) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-        {mockMetricsData.map((m) => (
+        {metricsData.map((m) => (
           <div
             key={m.id}
             className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#234580] transition-all"
@@ -211,27 +211,31 @@ const Achievements = () => {
       <div className="flex flex-col">
         <h2 className="text-[18px] font-bold text-white mb-4">Trophy Cabinet</h2>
 
+        {achievements.length === 0 && !isLoading && (
+          <p className="text-[#94A3B8] text-[14px]">No achievements found.</p>
+        )}
+
         {/* 3-Column Trophy Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {trophies.map((item) => (
+          {achievements.map((item: any) => (
             <div
-              key={item.id}
+              key={item._id}
               className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:border-[#234580] transition-all"
             >
               {/* Left Side: Trophy Icon & Player Info */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 min-w-0">
                 <div className="w-14 h-14 rounded-2xl bg-[#EAB308]/15 border border-[#EAB308]/30 flex items-center justify-center shrink-0 shadow-xs">
-                  {renderTrophyIcon(item.iconType)}
+                  {renderTrophyIcon(item.awardType)}
                 </div>
 
-                <div className="flex flex-col">
-                  <h3 className="text-[15px] font-bold text-white leading-tight">
-                    {item.title}
+                <div className="flex flex-col min-w-0">
+                  <h3 className="text-[15px] font-bold text-white leading-tight truncate">
+                    {item.awardType}
                   </h3>
 
                   <div className="flex items-center gap-2 mt-1">
                     <div
-                      className={`w-6 h-6 rounded-full ${item.playerAvatarBg} text-white font-bold text-[10px] flex items-center justify-center shrink-0`}
+                      className={`w-6 h-6 rounded-full ${getAvatarBg(item.awardType)} text-white font-bold text-[10px] flex items-center justify-center shrink-0`}
                     >
                       {item.playerInitials}
                     </div>
@@ -240,16 +244,16 @@ const Achievements = () => {
                     </span>
                   </div>
 
-                  <span className="text-[12px] font-medium text-[#64748B] mt-1">
-                    {item.eventSubtitle}
+                  <span className="text-[12px] font-medium text-[#64748B] mt-1 truncate" title={item.matchEvent}>
+                    {item.matchEvent}
                   </span>
                 </div>
               </div>
 
               {/* Right Side: Date & Awarded Badge */}
-              <div className="flex flex-col items-end shrink-0 self-start mt-0.5">
-                <span className="text-[12px] font-medium text-[#64748B]">
-                  {item.date}
+              <div className="flex flex-col items-end shrink-0 self-start mt-0.5 ml-2">
+                <span className="text-[12px] font-medium text-[#64748B] whitespace-nowrap">
+                  {item.formattedDate}
                 </span>
                 <span className="text-[#F59E0B] font-bold text-[11px] flex items-center gap-1 mt-1">
                   <FiStar size={11} className="fill-[#F59E0B]" />
@@ -279,6 +283,27 @@ const Achievements = () => {
             </div>
 
             <div className="flex flex-col gap-4">
+              {/* Squad Dropdown */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-bold text-white">Squad</label>
+                <div className="relative">
+                  <select
+                    value={selectedSquad}
+                    onChange={(e) => setSelectedSquad(e.target.value)}
+                    className="bg-[#07152F] border border-[#162E58] text-white text-[13px] rounded-xl px-4 py-3 w-full appearance-none focus:outline-none focus:border-[#3B82F6] cursor-pointer"
+                  >
+                    {mySquads?.map((squad: any) => (
+                      <option key={squad._id} value={squad._id}>
+                        {squad.name}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">
+                    ▼
+                  </span>
+                </div>
+              </div>
+
               {/* Player Dropdown */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[13px] font-bold text-white">Player</label>
@@ -288,12 +313,14 @@ const Achievements = () => {
                     onChange={(e) => setSelectedPlayer(e.target.value)}
                     className="bg-[#07152F] border border-[#162E58] text-white text-[13px] rounded-xl px-4 py-3 w-full appearance-none focus:outline-none focus:border-[#3B82F6] cursor-pointer"
                   >
-                    <option value="James Mitchell">James Mitchell</option>
-                    <option value="Kai Robertson">Kai Robertson</option>
-                    <option value="Leon Williams">Leon Williams</option>
-                    <option value="Ethan Jordan">Ethan Jordan</option>
-                    <option value="Noah Patel">Noah Patel</option>
-                    <option value="Tyler Brooks">Tyler Brooks</option>
+                    {players?.map((p: any) => (
+                      <option key={p._id} value={p._id}>
+                        {p.fullName || `${p.firstName} ${p.lastName}`}
+                      </option>
+                    ))}
+                    {(!players || players.length === 0) && (
+                      <option value="" disabled>No players</option>
+                    )}
                   </select>
                   <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">
                     ▼
@@ -370,9 +397,10 @@ const Achievements = () => {
                 <button
                   type="button"
                   onClick={handleAddAchievement}
-                  className="w-1/2 bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white font-bold py-3 rounded-full text-[13px] shadow-md transition-all cursor-pointer text-center"
+                  disabled={isCreating}
+                  className="w-1/2 bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 disabled:opacity-50 text-white font-bold py-3 rounded-full text-[13px] shadow-md transition-all cursor-pointer flex justify-center items-center gap-2"
                 >
-                  Add Achievement
+                  {isCreating ? <Spin size="small" /> : "Add Achievement"}
                 </button>
               </div>
             </div>

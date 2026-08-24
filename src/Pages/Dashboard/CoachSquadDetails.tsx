@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiChevronLeft, FiSearch, FiEye, FiFileText, FiActivity, FiTarget } from "react-icons/fi";
+import { FiChevronLeft, FiSearch } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 import { Modal, message, Spin } from "antd";
 import { useGetSquadByIdQuery } from "@/redux/apiSlices/squadSlice";
@@ -51,8 +51,8 @@ const CoachSquadDetails = () => {
   const playersList = playersResponse?.data || [];
   const dynamicPlayers: Player[] = playersList.map((p: any, index: number) => {
     const name = p.fullName || p.name || `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Unknown';
-    const initials = (p.firstName && p.lastName) 
-      ? `${p.firstName[0]}${p.lastName[0]}`.toUpperCase() 
+    const initials = (p.firstName && p.lastName)
+      ? `${p.firstName[0]}${p.lastName[0]}`.toUpperCase()
       : name.substring(0, 2).toUpperCase();
 
     return {
@@ -263,10 +263,10 @@ const CoachSquadDetails = () => {
           activeModal.type === "view"
             ? `Player Details - ${activeModal.player?.name}`
             : activeModal.type === "note"
-            ? `Add Session Note for ${activeModal.player?.name}`
-            : activeModal.type === "assess"
-            ? `Assess ${activeModal.player?.name}`
-            : `Set Target for ${activeModal.player?.name}`
+              ? `Add Session Note for ${activeModal.player?.name}`
+              : activeModal.type === "assess"
+                ? `Assess ${activeModal.player?.name}`
+                : `Set Target for ${activeModal.player?.name}`
         }
         open={!!activeModal.type}
         onOk={handleActionSubmit}
@@ -319,8 +319,8 @@ const CoachSquadDetails = () => {
               {activeModal.type === "note"
                 ? "Enter Observation / Feedback Note:"
                 : activeModal.type === "assess"
-                ? "Enter Assessment Rating / Comments:"
-                : "Enter Development Target Goal:"}
+                  ? "Enter Assessment Rating / Comments:"
+                  : "Enter Development Target Goal:"}
             </label>
             <textarea
               rows={4}

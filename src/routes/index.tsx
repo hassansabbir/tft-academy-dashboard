@@ -24,18 +24,7 @@ interface JwtPayload {
   role?: string;
 }
 
-const checkIsCoach = (): boolean => {
-  const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-  if (token) {
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      return decoded.role === "CHOACH";
-    } catch (e) {
-      return false;
-    }
-  }
-  return false;
-};
+
 
 const SettingsRoute = () => {
   const [isCoach, setIsCoach] = useState(false);
@@ -141,6 +130,10 @@ const router = createBrowserRouter([
         element: <PlayerDetailsRoute />,
       },
       {
+        path: "/players/add",
+        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN", "CHOACH"]}><AddPlayer /></ProtectedRoute>,
+      },
+      {
         path: "/players/:id",
         element: <PlayerDetailsRoute />,
       },
@@ -208,10 +201,7 @@ const router = createBrowserRouter([
         path: "/settings",
         element: <ProtectedRoute allowedRoles={["CHOACH"]}><SettingsRoute /></ProtectedRoute>,
       },
-      {
-        path: "/players/add",
-        element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><AddPlayer /></ProtectedRoute>,
-      },
+
       {
         path: "/personal-information",
         element: <ProtectedRoute allowedRoles={["ADMIN", "SUPER_ADMIN"]}><UserProfile /></ProtectedRoute>,

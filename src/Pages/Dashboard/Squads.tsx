@@ -47,14 +47,14 @@ const Squads = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-[#f8faff] p-6 pb-12 overflow-y-auto">
+    <div className={`flex flex-col h-full p-6 pb-12 overflow-y-auto ${isCoach ? 'bg-[#050E21]' : 'bg-[#f8faff]'}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex flex-col">
-          <h1 className="text-[28px] font-bold text-gray-900 leading-tight">
+          <h1 className={`text-[28px] font-bold leading-tight ${isCoach ? 'text-white' : 'text-gray-900'}`}>
             Squads
           </h1>
-          <p className="text-[14px] font-medium mt-1 text-gray-500">
+          <p className={`text-[14px] font-medium mt-1 ${isCoach ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
             {meta.total} active squads · Season 2024/25
           </p>
         </div>
@@ -98,7 +98,9 @@ const Squads = () => {
             return (
               <div
                 key={squad._id}
-                className="bg-white rounded-2xl p-6 flex flex-col justify-between transition-all shadow-sm border border-gray-100 hover:shadow-md hover:border-gray-200"
+                className={`rounded-2xl p-6 flex flex-col justify-between transition-all shadow-sm border 
+                  ${isCoach ? 'bg-[#0B1B38] border-[#162E58] hover:border-[#2b4c8c]' : 'bg-white border-gray-100 hover:shadow-md hover:border-gray-200'}
+                `}
               >
                 {/* Top Section: Badge, Title, Coach */}
                 <div className="flex gap-4 mb-6">
@@ -111,41 +113,41 @@ const Squads = () => {
                   </div>
 
                   <div className="flex flex-col justify-center">
-                    <h3 className="text-[18px] font-bold text-gray-900 leading-tight">
+                    <h3 className={`text-[18px] font-bold leading-tight ${isCoach ? 'text-white' : 'text-gray-900'}`}>
                       {ageGroupLabel} {squad.name}
                     </h3>
-                    <span className="text-[14px] font-medium mt-0.5 text-gray-500">
+                    <span className={`text-[14px] font-medium mt-0.5 ${isCoach ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
                       {coachName}
                     </span>
                   </div>
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-3 mb-6 bg-gray-50/50 rounded-xl p-4">
+                <div className={`grid grid-cols-3 mb-6 rounded-xl p-4 ${isCoach ? 'bg-[#132A52]' : 'bg-gray-50/50'}`}>
                   {/* Players */}
-                  <div className="flex flex-col items-center justify-center border-r border-gray-100">
-                    <span className="text-[20px] font-bold text-gray-900 leading-none">
+                  <div className={`flex flex-col items-center justify-center border-r ${isCoach ? 'border-[#162E58]' : 'border-gray-100'}`}>
+                    <span className={`text-[20px] font-bold leading-none ${isCoach ? 'text-white' : 'text-gray-900'}`}>
                       {currentPlayers}
                     </span>
-                    <span className="text-[12px] font-medium text-gray-400 mt-1">
+                    <span className={`text-[12px] font-medium mt-1 ${isCoach ? 'text-[#94A3B8]' : 'text-gray-400'}`}>
                       Players
                     </span>
                   </div>
                   {/* Attendance */}
-                  <div className="flex flex-col items-center justify-center border-r border-gray-100">
+                  <div className={`flex flex-col items-center justify-center border-r ${isCoach ? 'border-[#162E58]' : 'border-gray-100'}`}>
                     <span className="text-[20px] font-bold text-[#22C55E] leading-none">
                       {attendanceRate}
                     </span>
-                    <span className="text-[12px] font-medium text-gray-400 mt-1">
+                    <span className={`text-[12px] font-medium mt-1 ${isCoach ? 'text-[#94A3B8]' : 'text-gray-400'}`}>
                       Attendance
                     </span>
                   </div>
                   {/* Schedule */}
                   <div className="flex flex-col items-center justify-center text-center px-2">
-                    <span className="text-[13px] font-bold text-gray-900 leading-tight">
+                    <span className={`text-[13px] font-bold leading-tight ${isCoach ? 'text-white' : 'text-gray-900'}`}>
                       {schedule}
                     </span>
-                    <span className="text-[12px] font-medium text-gray-400 mt-1">
+                    <span className={`text-[12px] font-medium mt-1 ${isCoach ? 'text-[#94A3B8]' : 'text-gray-400'}`}>
                       Schedule
                     </span>
                   </div>
@@ -154,15 +156,15 @@ const Squads = () => {
                 {/* Squad Capacity */}
                 <div className="flex flex-col mb-6">
                   <div className="flex items-center justify-between text-[13px] mb-2">
-                    <span className="font-medium text-gray-500">
+                    <span className={`font-medium ${isCoach ? 'text-[#94A3B8]' : 'text-gray-500'}`}>
                       Squad capacity
                     </span>
-                    <span className="font-bold text-gray-900">
+                    <span className={`font-bold ${isCoach ? 'text-white' : 'text-gray-900'}`}>
                       {currentPlayers}/{maxPlayers}
                     </span>
                   </div>
 
-                  <div className="w-full h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div className={`w-full h-1.5 rounded-full overflow-hidden ${isCoach ? 'bg-white' : 'bg-gray-100'}`}>
                     <div
                       className="h-full rounded-full"
                       style={{ 
@@ -176,7 +178,9 @@ const Squads = () => {
                 {/* Action Button */}
                 <button
                   onClick={() => navigate(`/squads/${squad._id}`)}
-                  className="w-full bg-[#EBF1FF] hover:bg-[#e1e9fc] text-[#1D4ED8] font-bold text-[14px] py-3.5 rounded-full transition-all cursor-pointer text-center"
+                  className={`w-full font-bold text-[14px] py-3.5 rounded-full transition-all cursor-pointer text-center
+                    ${isCoach ? 'bg-[#F8FAFC] hover:bg-white text-[#1D4ED8]' : 'bg-[#EBF1FF] hover:bg-[#e1e9fc] text-[#1D4ED8]'}
+                  `}
                 >
                   View Squad
                 </button>

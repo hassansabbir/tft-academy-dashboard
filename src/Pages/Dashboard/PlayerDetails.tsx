@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { FiChevronLeft, FiActivity, FiFileText, FiTarget, FiPlus, FiSend, FiUser, FiMapPin, FiHeart } from "react-icons/fi";
-import { BiTrophy } from "react-icons/bi";
+import { FiChevronLeft, FiActivity, FiUser, FiMapPin, FiHeart } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 import { Modal, message, Spin, Alert } from "antd";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
@@ -70,7 +69,7 @@ const PlayerDetails = () => {
     );
   }
 
-  const { assessment = {}, address = {}, medicalInfo = {}, parentId = {}, otherDevelopment = {} } = player;
+  const { assessment = {}, address = {}, medicalInfo = {}, parentId = {} } = player;
 
   // Calculate Overall Score
   const assessValues = [
@@ -89,7 +88,7 @@ const PlayerDetails = () => {
   // Dynamic Attendance (Fallback to 0 since API doesn't provide specific breakdown)
   const attRateStr = player.attendanceRate || "0";
   const attRate = parseInt(attRateStr.replace(/\D/g, ''), 10) || 0;
-  
+
   const dynamicAttendanceData = [
     { name: "Attended", value: attRate, color: "#3B82F6" },
     { name: "Missed", value: attRate > 0 ? 100 - attRate : 100, color: "#EF4444" },
@@ -112,8 +111,8 @@ const PlayerDetails = () => {
         {/* Left Side: Avatar & Details */}
         <div className="flex items-center gap-5">
           {player.image ? (
-            <img 
-              src={player.image.startsWith("http") ? player.image : `${imageUrl}${player.image}`} 
+            <img
+              src={player.image.startsWith("http") ? player.image : `${imageUrl}${player.image}`}
               alt={player.firstName}
               className="w-20 h-20 rounded-2xl object-cover shrink-0 shadow-md"
               onError={(e) => {
@@ -208,166 +207,166 @@ const PlayerDetails = () => {
 
       {/* Main Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-        
+
         {/* Column 1: Development Scores */}
         <div className="flex flex-col gap-6 h-full">
           <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm flex-1">
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[16px] font-bold text-gray-900">Development Scores</h3>
-            <button
-              onClick={() => setModalType("assess")}
-              className="bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 text-[12px] font-bold px-3 py-1.5 rounded-full border border-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <FiActivity size={13} />
-              <span>Add New Assess</span>
-            </button>
+              <h3 className="text-[16px] font-bold text-gray-900">Development Scores</h3>
+              <button
+                onClick={() => setModalType("assess")}
+                className="bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-900 text-[12px] font-bold px-3 py-1.5 rounded-full border border-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <FiActivity size={13} />
+                <span>Add New Assess</span>
+              </button>
+            </div>
+
+            {/* Development Score Bars */}
+            <div className="flex flex-col gap-4">
+              {/* Technical */}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Technical</span>
+                <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#3B82F6] rounded-full" style={{ width: `${(assessment.technical || 0) * 10}%` }} />
+                </div>
+                <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.technical || 0}</span>
+              </div>
+
+              {/* Physical */}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Physical</span>
+                <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#10B981] rounded-full" style={{ width: `${(assessment.physicality || 0) * 10}%` }} />
+                </div>
+                <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.physicality || 0}</span>
+              </div>
+
+              {/* Mentality */}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Mentality</span>
+                <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#F59E0B] rounded-full" style={{ width: `${(assessment.mentality || 0) * 10}%` }} />
+                </div>
+                <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.mentality || 0}</span>
+              </div>
+
+              {/* Social */}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Social</span>
+                <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#A855F7] rounded-full" style={{ width: `${(assessment.social || 0) * 10}%` }} />
+                </div>
+                <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.social || 0}</span>
+              </div>
+
+              {/* Psychological */}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Psychological</span>
+                <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#06B6D4] rounded-full" style={{ width: `${(assessment.psychological || 0) * 10}%` }} />
+                </div>
+                <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.psychological || 0}</span>
+              </div>
+            </div>
+
+            {assessment.remarks && (
+              <div className="mt-6 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                <span className="text-[12px] font-bold text-blue-600 block mb-1">Coach Remarks:</span>
+                <p className="text-[13px] text-gray-600 font-medium leading-relaxed">{assessment.remarks}</p>
+              </div>
+            )}
           </div>
-
-          {/* Development Score Bars */}
-          <div className="flex flex-col gap-4">
-            {/* Technical */}
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Technical</span>
-              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="h-full bg-[#3B82F6] rounded-full" style={{ width: `${(assessment.technical || 0) * 10}%` }} />
-              </div>
-              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.technical || 0}</span>
-            </div>
-
-            {/* Physical */}
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Physical</span>
-              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="h-full bg-[#10B981] rounded-full" style={{ width: `${(assessment.physicality || 0) * 10}%` }} />
-              </div>
-              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.physicality || 0}</span>
-            </div>
-
-            {/* Mentality */}
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Mentality</span>
-              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="h-full bg-[#F59E0B] rounded-full" style={{ width: `${(assessment.mentality || 0) * 10}%` }} />
-              </div>
-              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.mentality || 0}</span>
-            </div>
-
-            {/* Social */}
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Social</span>
-              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="h-full bg-[#A855F7] rounded-full" style={{ width: `${(assessment.social || 0) * 10}%` }} />
-              </div>
-              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.social || 0}</span>
-            </div>
-
-            {/* Psychological */}
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] font-medium text-gray-500 w-28 shrink-0">Psychological</span>
-              <div className="flex-1 bg-gray-100 h-2 rounded-full overflow-hidden">
-                <div className="h-full bg-[#06B6D4] rounded-full" style={{ width: `${(assessment.psychological || 0) * 10}%` }} />
-              </div>
-              <span className="text-[13px] font-bold text-gray-900 w-8 text-right">{assessment.psychological || 0}</span>
-            </div>
-          </div>
-          
-          {assessment.remarks && (
-            <div className="mt-6 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
-               <span className="text-[12px] font-bold text-blue-600 block mb-1">Coach Remarks:</span>
-               <p className="text-[13px] text-gray-600 font-medium leading-relaxed">{assessment.remarks}</p>
-            </div>
-          )}
-        </div>
         </div>
 
         {/* Column 2: New Information Cards (Parent, Medical, Address) */}
         <div className="flex flex-col gap-6 h-full">
-           {/* Parent Info */}
-           <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
+          {/* Parent Info */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
             <div className="flex items-center gap-2 mb-4 text-[#1239D4]">
               <FiUser size={18} />
               <h3 className="text-[16px] font-bold text-gray-900">Parent / Guardian</h3>
             </div>
             <div className="flex items-center gap-4 mb-4">
-               {parentId.image ? (
-                 <img src={parentId.image.startsWith("http") ? parentId.image : `${imageUrl}${parentId.image}`} alt="Parent" className="w-12 h-12 rounded-full object-cover" />
-               ) : (
-                 <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><FiUser size={20} /></div>
-               )}
-               <div>
-                  <h4 className="text-[14px] font-bold text-gray-900">{parentId.name || "N/A"}</h4>
-                  <span className="text-[12px] text-gray-500">{player.relationshipToPlayer || "Parent"}</span>
-               </div>
+              {parentId.image ? (
+                <img src={parentId.image.startsWith("http") ? parentId.image : `${imageUrl}${parentId.image}`} alt="Parent" className="w-12 h-12 rounded-full object-cover" />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><FiUser size={20} /></div>
+              )}
+              <div>
+                <h4 className="text-[14px] font-bold text-gray-900">{parentId.name || "N/A"}</h4>
+                <span className="text-[12px] text-gray-500">{player.relationshipToPlayer || "Parent"}</span>
+              </div>
             </div>
             <div className="flex flex-col gap-2 text-[13px]">
-               <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                 <span className="text-gray-500 font-medium">Email</span>
-                 <span className="text-gray-900 font-medium">{parentId.email || "N/A"}</span>
-               </div>
-               <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
-                 <span className="text-gray-500 font-medium">Alternative Phone</span>
-                 <span className="text-gray-900 font-medium">{player.alternativePhone || "N/A"}</span>
-               </div>
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                <span className="text-gray-500 font-medium">Email</span>
+                <span className="text-gray-900 font-medium">{parentId.email || "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
+                <span className="text-gray-500 font-medium">Alternative Phone</span>
+                <span className="text-gray-900 font-medium">{player.alternativePhone || "N/A"}</span>
+              </div>
             </div>
-           </div>
+          </div>
 
-           {/* Address Info */}
-           <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm flex-1">
+          {/* Address Info */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm flex-1">
             <div className="flex items-center gap-2 mb-4 text-[#10B981]">
               <FiMapPin size={18} />
               <h3 className="text-[16px] font-bold text-gray-900">Address Details</h3>
             </div>
             <div className="flex flex-col gap-2 text-[13px]">
-               <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                 <span className="text-gray-500 font-medium">Street</span>
-                 <span className="text-gray-900 font-medium">{address.homeAddress || "N/A"}</span>
-               </div>
-               <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
-                 <span className="text-gray-500 font-medium">City</span>
-                 <span className="text-gray-900 font-medium">{address.city || "N/A"}</span>
-               </div>
-               <div className="flex items-center justify-between pt-1">
-                 <span className="text-gray-500 font-medium">Postcode</span>
-                 <span className="text-gray-900 font-medium">{address.postcode || "N/A"}</span>
-               </div>
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                <span className="text-gray-500 font-medium">Street</span>
+                <span className="text-gray-900 font-medium">{address.homeAddress || "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
+                <span className="text-gray-500 font-medium">City</span>
+                <span className="text-gray-900 font-medium">{address.city || "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-gray-500 font-medium">Postcode</span>
+                <span className="text-gray-900 font-medium">{address.postcode || "N/A"}</span>
+              </div>
             </div>
-           </div>
+          </div>
         </div>
 
         {/* Column 3: Medical Info & Analytics */}
         <div className="flex flex-col gap-6 h-full">
-           {/* Medical Info */}
-           <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
+          {/* Medical Info */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm">
             <div className="flex items-center gap-2 mb-4 text-[#EF4444]">
               <FiHeart size={18} />
               <h3 className="text-[16px] font-bold text-gray-900">Medical Info</h3>
             </div>
             <div className="flex flex-col gap-3 text-[13px]">
-               <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                 <span className="text-gray-500 font-medium">Blood Group</span>
-                 <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold">{medicalInfo.bloodGroup || "N/A"}</span>
-               </div>
-               <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
-                 <span className="text-gray-500 font-medium">Allergies</span>
-                 <span className="text-gray-900 font-medium">
-                    {medicalInfo.allergies?.length ? medicalInfo.allergies.join(", ") : "None"}
-                 </span>
-               </div>
-               <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
-                 <span className="text-gray-500 font-medium">Conditions</span>
-                 <span className="text-gray-900 font-medium">{medicalInfo.medicalConditions || "None"}</span>
-               </div>
-               <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
-                 <span className="text-gray-500 font-medium">Medications</span>
-                 <span className="text-gray-900 font-medium">{medicalInfo.medications || "None"}</span>
-               </div>
-               <div className="flex flex-col pt-1">
-                 <span className="text-gray-500 font-medium mb-1">Emergency Contact</span>
-                 <span className="text-gray-900 font-bold">{medicalInfo.emergencyContactName || "N/A"} ({medicalInfo.emergencyPhone || "N/A"})</span>
-               </div>
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                <span className="text-gray-500 font-medium">Blood Group</span>
+                <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded font-bold">{medicalInfo.bloodGroup || "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
+                <span className="text-gray-500 font-medium">Allergies</span>
+                <span className="text-gray-900 font-medium">
+                  {medicalInfo.allergies?.length ? medicalInfo.allergies.join(", ") : "None"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
+                <span className="text-gray-500 font-medium">Conditions</span>
+                <span className="text-gray-900 font-medium">{medicalInfo.medicalConditions || "None"}</span>
+              </div>
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2 pt-1">
+                <span className="text-gray-500 font-medium">Medications</span>
+                <span className="text-gray-900 font-medium">{medicalInfo.medications || "None"}</span>
+              </div>
+              <div className="flex flex-col pt-1">
+                <span className="text-gray-500 font-medium mb-1">Emergency Contact</span>
+                <span className="text-gray-900 font-bold">{medicalInfo.emergencyContactName || "N/A"} ({medicalInfo.emergencyPhone || "N/A"})</span>
+              </div>
             </div>
-           </div>
+          </div>
 
           {/* Attendance Analytics */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col shadow-sm flex-1">
@@ -428,12 +427,12 @@ const PlayerDetails = () => {
           modalType === "assess"
             ? `Add New Assessment for ${player.firstName}`
             : modalType === "note"
-            ? `Add New Session Note for ${player.firstName}`
-            : modalType === "target"
-            ? `Set New Target for ${player.firstName}`
-            : modalType === "attendance"
-            ? "Set Attendance Status"
-            : `Add Achievement for ${player.firstName}`
+              ? `Add New Session Note for ${player.firstName}`
+              : modalType === "target"
+                ? `Set New Target for ${player.firstName}`
+                : modalType === "attendance"
+                  ? "Set Attendance Status"
+                  : `Add Achievement for ${player.firstName}`
         }
         open={!!modalType}
         onOk={handleModalSubmit}
@@ -447,12 +446,12 @@ const PlayerDetails = () => {
             {modalType === "assess"
               ? "Select Area & Rating:"
               : modalType === "note"
-              ? "Note Details:"
-              : modalType === "target"
-              ? "Target Title & Deadline:"
-              : modalType === "attendance"
-              ? "Select Status (Attended / Missed / Late):"
-              : "Achievement Title & Description:"}
+                ? "Note Details:"
+                : modalType === "target"
+                  ? "Target Title & Deadline:"
+                  : modalType === "attendance"
+                    ? "Select Status (Attended / Missed / Late):"
+                    : "Achievement Title & Description:"}
           </label>
           <textarea
             rows={4}

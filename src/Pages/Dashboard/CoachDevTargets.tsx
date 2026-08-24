@@ -1,156 +1,41 @@
 import { useState, useEffect } from "react";
 import { FiPlus, FiCheckCircle } from "react-icons/fi";
 import { jwtDecode } from "jwt-decode";
-import { message } from "antd";
+import { message, Spin } from "antd";
+import { useGetCoachTargetsQuery, useCreateTargetMutation, useUpdateTargetProgressMutation } from "@/redux/apiSlices/dashboardSlice";
+import { useGetMySquadsQuery } from "@/redux/apiSlices/squadSlice";
+import { useGetPlayersBySquadQuery } from "@/redux/apiSlices/playerSlice";
 
 interface JwtPayload {
   role?: string;
 }
 
-interface TargetItem {
-  id: number;
-  title: string;
-  playerInitials: string;
-  playerName: string;
-  playerAvatarBg: string;
-  category: string;
-  dueDate: string;
-  progress: number;
-  status: "In Progress" | "Completed";
-}
-
-const initialTargetsData: TargetItem[] = [
-  // In Progress Targets
-  {
-    id: 1,
-    title: "Improve Passing Accuracy to 85%",
-    playerInitials: "JM",
-    playerName: "James Mitchell",
-    playerAvatarBg: "bg-[#2563EB]",
-    category: "Technical",
-    dueDate: "Due Jan 31",
-    progress: 72,
-    status: "In Progress",
-  },
-  {
-    id: 2,
-    title: "Improve Passing Accuracy to 85%",
-    playerInitials: "JM",
-    playerName: "James Mitchell",
-    playerAvatarBg: "bg-[#2563EB]",
-    category: "Technical",
-    dueDate: "Due Jan 31",
-    progress: 72,
-    status: "In Progress",
-  },
-  {
-    id: 3,
-    title: "Complete 10 Heading Drills",
-    playerInitials: "TB",
-    playerName: "Tyler Brooks",
-    playerAvatarBg: "bg-[#059669]",
-    category: "Physical",
-    dueDate: "Due Jan 28",
-    progress: 60,
-    status: "In Progress",
-  },
-  {
-    id: 4,
-    title: "Complete 10 Heading Drills",
-    playerInitials: "TB",
-    playerName: "Tyler Brooks",
-    playerAvatarBg: "bg-[#059669]",
-    category: "Physical",
-    dueDate: "Due Jan 28",
-    progress: 60,
-    status: "In Progress",
-  },
-  {
-    id: 5,
-    title: "Score 5 Goals in Training",
-    playerInitials: "AC",
-    playerName: "Aiden Clarke",
-    playerAvatarBg: "bg-[#DC2626]",
-    category: "Technical",
-    dueDate: "Due Feb 14",
-    progress: 40,
-    status: "In Progress",
-  },
-  {
-    id: 6,
-    title: "Score 5 Goals in Training",
-    playerInitials: "AC",
-    playerName: "Aiden Clarke",
-    playerAvatarBg: "bg-[#DC2626]",
-    category: "Technical",
-    dueDate: "Due Feb 14",
-    progress: 40,
-    status: "In Progress",
-  },
-
-  // Completed Targets
-  {
-    id: 7,
-    title: "Improve Communication Rating",
-    playerInitials: "LW",
-    playerName: "Leon Williams",
-    playerAvatarBg: "bg-[#7C3AED]",
-    category: "Social",
-    dueDate: "Due Jan 15",
-    progress: 100,
-    status: "Completed",
-  },
-  {
-    id: 8,
-    title: "Improve Communication Rating",
-    playerInitials: "LW",
-    playerName: "Leon Williams",
-    playerAvatarBg: "bg-[#7C3AED]",
-    category: "Social",
-    dueDate: "Due Jan 15",
-    progress: 100,
-    status: "Completed",
-  },
-  {
-    id: 9,
-    title: "First Team Training Sessions x3",
-    playerInitials: "KR",
-    playerName: "Kai Robertson",
-    playerAvatarBg: "bg-[#D97706]",
-    category: "Development",
-    dueDate: "Due Jan 20",
-    progress: 100,
-    status: "Completed",
-  },
-  {
-    id: 10,
-    title: "First Team Training Sessions x3",
-    playerInitials: "KR",
-    playerName: "Kai Robertson",
-    playerAvatarBg: "bg-[#D97706]",
-    category: "Development",
-    dueDate: "Due Jan 20",
-    progress: 100,
-    status: "Completed",
-  },
-];
-
 const DevTargets = () => {
   const [isCoach, setIsCoach] = useState(false);
-  const [targets, setTargets] = useState<TargetItem[]>(initialTargetsData);
 
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newSuccessCriteria, setNewSuccessCriteria] = useState("");
-  const [newPlayer, setNewPlayer] = useState("James Mitchell");
+
+  const [newSquadId, setNewSquadId] = useState("");
+  const [newPlayerId, setNewPlayerId] = useState("");
   const [newPriority, setNewPriority] = useState("High");
   const [newCategory, setNewCategory] = useState("Technical");
-  const [newDueDate, setNewDueDate] = useState("2025-01-31");
+  const [newDueDate, setNewDueDate] = useState("2026-01-31");
 
-  const [activeProgressTarget, setActiveProgressTarget] = useState<TargetItem | null>(null);
-  const [progressInput, setProgressInput] = useState<number>(72);
+  const [activeProgressTarget, setActiveProgressTarget] = useState<any | null>(null);
+  const [progressInput, setProgressInput] = useState<number>(0);
+
+  // Fetch API
+  const { data: targetsResponse, isLoading, refetch } = useGetCoachTargetsQuery({ page: 1, limit: 100 });
+  const [createTarget, { isLoading: isCreating }] = useCreateTargetMutation();
+  const [updateTargetProgress, { isLoading: isUpdatingProgress }] = useUpdateTargetProgressMutation();
+  const { data: mySquads } = useGetMySquadsQuery(undefined);
+  const { data: players } = useGetPlayersBySquadQuery(newSquadId, { skip: !newSquadId });
+
+  const apiTargets = targetsResponse || [];
 
   useEffect(() => {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
@@ -164,56 +49,95 @@ const DevTargets = () => {
     }
   }, []);
 
-  const inProgressTargets = targets.filter((t) => t.status === "In Progress");
-  const completedTargets = targets.filter((t) => t.status === "Completed");
+  // Default squad
+  useEffect(() => {
+    if (mySquads?.length > 0 && !newSquadId) {
+      setNewSquadId(mySquads[0]._id);
+    }
+  }, [mySquads, newSquadId]);
 
-  const handleCreateTarget = () => {
-    if (!newTitle.trim()) return;
-    const newTargetObj: TargetItem = {
-      id: Date.now(),
+  // Default player
+  useEffect(() => {
+    if (players?.length > 0) {
+      const currentPlayerExists = players.find((p: any) => p._id === newPlayerId);
+      if (!currentPlayerExists) {
+        setNewPlayerId(players[0]._id);
+      }
+    } else {
+      setNewPlayerId("");
+    }
+  }, [players, newSquadId]);
+
+  const inProgressTargets = apiTargets.filter((t: any) => t.status === "In Progress");
+  const completedTargets = apiTargets.filter((t: any) => t.status === "Completed");
+
+  const handleCreateTarget = async () => {
+    if (!newTitle.trim() || !newPlayerId) {
+      message.error("Please provide a title and select a player.");
+      return;
+    }
+
+    const payload = {
       title: newTitle,
-      playerInitials: newPlayer
-        .split(" ")
-        .map((n) => n[0])
-        .join(""),
-      playerName: newPlayer,
-      playerAvatarBg: "bg-[#2563EB]",
+      description: newDescription,
+      successCriteria: newSuccessCriteria,
+      playerId: newPlayerId,
+      priority: newPriority,
       category: newCategory,
-      dueDate: "Due Feb 28",
-      progress: 0,
-      status: "In Progress",
+      dueDate: newDueDate,
     };
-    setTargets([newTargetObj, ...targets]);
-    setIsCreateModalOpen(false);
-    setNewTitle("");
-    message.success("New target created successfully!");
+
+    try {
+      await createTarget(payload).unwrap();
+      message.success("Target created successfully!");
+      setIsCreateModalOpen(false);
+      setNewTitle("");
+      setNewDescription("");
+      setNewSuccessCriteria("");
+      refetch();
+    } catch (error: any) {
+      message.error(error.data?.message || "Failed to create target.");
+    }
   };
 
-  const handleUpdateProgress = () => {
+  const handleUpdateProgress = async () => {
     if (!activeProgressTarget) return;
-    setTargets((prev) =>
-      prev.map((item) => {
-        if (item.id === activeProgressTarget.id) {
-          const isDone = progressInput >= 100;
-          return {
-            ...item,
-            progress: progressInput,
-            status: isDone ? "Completed" : "In Progress",
-          };
-        }
-        return item;
-      })
-    );
-    setActiveProgressTarget(null);
-    message.success("Target progress updated!");
+
+    try {
+      await updateTargetProgress({
+        id: activeProgressTarget._id,
+        progress: progressInput,
+      }).unwrap();
+
+      message.success("Target progress updated successfully!");
+      setActiveProgressTarget(null);
+      refetch();
+    } catch (error: any) {
+      message.error(error.data?.message || "Failed to update progress.");
+    }
+  };
+
+  const getAvatarBg = (category: string) => {
+    switch (category?.toLowerCase()) {
+      case "technical": return "bg-[#2563EB]";
+      case "physical": return "bg-[#059669]";
+      case "social": return "bg-[#7C3AED]";
+      case "development": return "bg-[#D97706]";
+      default: return "bg-[#2563EB]";
+    }
   };
 
   return (
     <div
-      className={`flex flex-col h-full p-6 pb-12 overflow-y-auto ${
-        isCoach ? "bg-[#050E21]" : "bg-[#050E21]"
-      }`}
+      className={`flex flex-col h-full p-6 pb-12 overflow-y-auto relative ${isCoach ? "bg-[#050E21]" : "bg-[#050E21]"
+        }`}
     >
+      {isLoading && (
+        <div className="absolute inset-0 bg-[#050E21]/60 z-50 flex items-center justify-center">
+          <Spin size="large" />
+        </div>
+      )}
+
       {/* Header & Create Action Button */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
@@ -249,9 +173,12 @@ const DevTargets = () => {
 
           {/* Target Cards Grid (2 cols inside) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {inProgressTargets.map((target) => (
+            {inProgressTargets.length === 0 && !isLoading && (
+              <p className="text-gray-400 col-span-2">No targets in progress.</p>
+            )}
+            {inProgressTargets.map((target: any) => (
               <div
-                key={target.id}
+                key={target._id}
                 className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-5 flex flex-col justify-between hover:border-[#234580] transition-all shadow-sm"
               >
                 {/* Target Title */}
@@ -262,7 +189,7 @@ const DevTargets = () => {
                 {/* Player Row */}
                 <div className="flex items-center gap-3 mb-4">
                   <div
-                    className={`w-7 h-7 rounded-full ${target.playerAvatarBg} text-white font-bold text-[11px] flex items-center justify-center shrink-0 shadow-xs`}
+                    className={`w-7 h-7 rounded-full ${getAvatarBg(target.category)} text-white font-bold text-[11px] flex items-center justify-center shrink-0 shadow-xs`}
                   >
                     {target.playerInitials}
                   </div>
@@ -273,11 +200,11 @@ const DevTargets = () => {
 
                 {/* Category & Due Date */}
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="bg-[#1E3A8A] text-[#60A5FA] px-3 py-0.5 rounded-full text-[11px] font-bold border border-[#2563EB]/30">
+                  <span className="bg-[#1E3A8A] text-[#60A5FA] px-3 py-0.5 rounded-full text-[11px] font-bold border border-[#2563EB]/30 truncate max-w-[120px]">
                     {target.category}
                   </span>
-                  <span className="text-[12px] font-medium text-[#64748B]">
-                    {target.dueDate}
+                  <span className="text-[12px] font-medium text-[#64748B] whitespace-nowrap">
+                    {target.dueFormatted || target.dueDate?.slice(0, 10)}
                   </span>
                 </div>
 
@@ -299,7 +226,7 @@ const DevTargets = () => {
                 <button
                   onClick={() => {
                     setActiveProgressTarget(target);
-                    setProgressInput(target.progress);
+                    setProgressInput(target.progress || 0);
                   }}
                   className="w-full border border-[#162E58] hover:border-[#3B82F6] text-[#94A3B8] hover:text-white text-[12px] font-bold py-2 rounded-full text-center transition-all cursor-pointer"
                 >
@@ -325,9 +252,12 @@ const DevTargets = () => {
 
           {/* Completed Target Cards Grid (2 cols inside) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {completedTargets.map((target) => (
+            {completedTargets.length === 0 && !isLoading && (
+              <p className="text-gray-400 col-span-2">No completed targets.</p>
+            )}
+            {completedTargets.map((target: any) => (
               <div
-                key={target.id}
+                key={target._id}
                 className="bg-[#0B1B38] border border-[#162E58] rounded-2xl p-5 flex flex-col justify-between hover:border-[#234580] transition-all shadow-sm"
               >
                 {/* Target Title */}
@@ -338,7 +268,7 @@ const DevTargets = () => {
                 {/* Player Row */}
                 <div className="flex items-center gap-3 mb-4">
                   <div
-                    className={`w-7 h-7 rounded-full ${target.playerAvatarBg} text-white font-bold text-[11px] flex items-center justify-center shrink-0 shadow-xs`}
+                    className={`w-7 h-7 rounded-full ${getAvatarBg(target.category)} text-white font-bold text-[11px] flex items-center justify-center shrink-0 shadow-xs`}
                   >
                     {target.playerInitials}
                   </div>
@@ -349,11 +279,11 @@ const DevTargets = () => {
 
                 {/* Category & Due Date */}
                 <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="bg-[#1E3A8A] text-[#60A5FA] px-3 py-0.5 rounded-full text-[11px] font-bold border border-[#2563EB]/30">
+                  <span className="bg-[#1E3A8A] text-[#60A5FA] px-3 py-0.5 rounded-full text-[11px] font-bold border border-[#2563EB]/30 truncate max-w-[120px]">
                     {target.category}
                   </span>
-                  <span className="text-[12px] font-medium text-[#64748B]">
-                    {target.dueDate}
+                  <span className="text-[12px] font-medium text-[#64748B] whitespace-nowrap">
+                    {target.dueFormatted || target.dueDate?.slice(0, 10)}
                   </span>
                 </div>
 
@@ -420,21 +350,66 @@ const DevTargets = () => {
                 />
               </div>
 
-              {/* Row 1: Player & Priority */}
+              {/* Row 1: Squad & Player */}
               <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[13px] font-bold text-white">Squad</label>
+                  <div className="relative">
+                    <select
+                      value={newSquadId}
+                      onChange={(e) => setNewSquadId(e.target.value)}
+                      className="bg-[#07152F] border border-[#162E58] text-white text-[13px] rounded-xl px-4 py-3 w-full appearance-none focus:outline-none focus:border-[#3B82F6] cursor-pointer"
+                    >
+                      {mySquads?.map((squad: any) => (
+                        <option key={squad._id} value={squad._id}>
+                          {squad.name}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">
+                      ▼
+                    </span>
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[13px] font-bold text-white">Player</label>
                   <div className="relative">
                     <select
-                      value={newPlayer}
-                      onChange={(e) => setNewPlayer(e.target.value)}
+                      value={newPlayerId}
+                      onChange={(e) => setNewPlayerId(e.target.value)}
                       className="bg-[#07152F] border border-[#162E58] text-white text-[13px] rounded-xl px-4 py-3 w-full appearance-none focus:outline-none focus:border-[#3B82F6] cursor-pointer"
                     >
-                      <option value="James Mitchell">James Mitchell</option>
-                      <option value="Tyler Brooks">Tyler Brooks</option>
-                      <option value="Aiden Clarke">Aiden Clarke</option>
-                      <option value="Leon Williams">Leon Williams</option>
-                      <option value="Kai Robertson">Kai Robertson</option>
+                      {players?.map((p: any) => (
+                        <option key={p._id} value={p._id}>
+                          {p.fullName || `${p.firstName} ${p.lastName}`}
+                        </option>
+                      ))}
+                      {(!players || players.length === 0) && (
+                        <option value="" disabled>No players available</option>
+                      )}
+                    </select>
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">
+                      ▼
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 2: Category & Priority */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[13px] font-bold text-white">Category</label>
+                  <div className="relative">
+                    <select
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      className="bg-[#07152F] border border-[#162E58] text-white text-[13px] rounded-xl px-4 py-3 w-full appearance-none focus:outline-none focus:border-[#3B82F6] cursor-pointer"
+                    >
+                      <option value="Technical">Technical</option>
+                      <option value="Physical">Physical</option>
+                      <option value="Social">Social</option>
+                      <option value="Development">Development</option>
                     </select>
                     <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">
                       ▼
@@ -461,27 +436,8 @@ const DevTargets = () => {
                 </div>
               </div>
 
-              {/* Row 2: Category & Due Date */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[13px] font-bold text-white">Category</label>
-                  <div className="relative">
-                    <select
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                      className="bg-[#07152F] border border-[#162E58] text-white text-[13px] rounded-xl px-4 py-3 w-full appearance-none focus:outline-none focus:border-[#3B82F6] cursor-pointer"
-                    >
-                      <option value="Technical">Technical</option>
-                      <option value="Physical">Physical</option>
-                      <option value="Social">Social</option>
-                      <option value="Development">Development</option>
-                    </select>
-                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-[10px]">
-                      ▼
-                    </span>
-                  </div>
-                </div>
-
+              {/* Row 3: Due Date */}
+              <div className="grid grid-cols-1 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[13px] font-bold text-white">Due Date</label>
                   <input
@@ -503,9 +459,10 @@ const DevTargets = () => {
                 </button>
                 <button
                   onClick={handleCreateTarget}
-                  className="w-1/2 bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white font-bold py-3 rounded-full text-[13px] shadow-md transition-all cursor-pointer text-center"
+                  disabled={isCreating}
+                  className="w-1/2 bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 disabled:opacity-50 text-white font-bold py-3 rounded-full text-[13px] shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  Create Target
+                  {isCreating ? <Spin size="small" /> : "Create Target"}
                 </button>
               </div>
             </div>
@@ -523,7 +480,7 @@ const DevTargets = () => {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-7 h-7 rounded-full ${activeProgressTarget.playerAvatarBg} text-white font-bold text-[11px] flex items-center justify-center`}
+                    className={`w-7 h-7 rounded-full ${getAvatarBg(activeProgressTarget.category)} text-white font-bold text-[11px] flex items-center justify-center`}
                   >
                     {activeProgressTarget.playerInitials}
                   </div>
@@ -551,19 +508,19 @@ const DevTargets = () => {
                 {activeProgressTarget.category}
               </span>
               <span className="border border-[#10B981]/50 text-[#34D399] bg-[#064E3B]/40 px-3 py-1 rounded-full text-[12px] font-bold">
-                High
+                {activeProgressTarget.priority}
               </span>
             </div>
 
             {/* Target Description */}
             <p className="text-[13px] font-medium text-[#94A3B8] leading-relaxed mb-4">
-              Improve the player's left foot passing accuracy and confidence during training sessions and match situations.
+              {activeProgressTarget.description}
             </p>
 
             {/* Success Criteria */}
             <div className="border-t border-[#162E58] pt-4 mb-6">
               <p className="text-[13px] font-medium text-[#94A3B8] leading-relaxed">
-                Successfully complete at least 8 out of 10 accurate left-foot passes in training for 3 consecutive sessions.
+                {activeProgressTarget.successCriteria}
               </p>
             </div>
 
@@ -596,10 +553,11 @@ const DevTargets = () => {
             <div className="flex justify-end">
               <button
                 onClick={handleUpdateProgress}
-                className="bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 text-white font-bold px-7 py-3 rounded-full flex items-center gap-2 text-[13px] shadow-md transition-all cursor-pointer border border-blue-400/20"
+                disabled={isUpdatingProgress}
+                className="bg-gradient-to-b from-[#1E4ED8] to-[#0F2B8D] hover:opacity-95 disabled:opacity-50 text-white font-bold px-7 py-3 rounded-full flex items-center gap-2 text-[13px] shadow-md transition-all cursor-pointer border border-blue-400/20"
               >
-                <FiCheckCircle size={16} />
-                <span>Save Progress</span>
+                {isUpdatingProgress ? <Spin size="small" /> : <FiCheckCircle size={16} />}
+                <span>{isUpdatingProgress ? "Saving..." : "Save Progress"}</span>
               </button>
             </div>
           </div>

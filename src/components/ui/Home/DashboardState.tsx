@@ -1,5 +1,6 @@
 import { FiUsers, FiActivity, FiShield, FiClipboard, FiTarget, FiCalendar, FiPlus, FiUserCheck } from "react-icons/fi";
 import { BiCalendarCheck } from "react-icons/bi";
+import { Link } from "react-router-dom";
 import { useAdminKpiCardsQuery } from "../../../redux/apiSlices/dashboardSlice";
 
 const DashboardState = () => {
@@ -64,10 +65,10 @@ const DashboardState = () => {
           <h1 className="text-2xl font-semibold text-gray-900">Academy Overview</h1>
           <p className="text-sm text-gray-500 font-medium mt-1">Friday, 25 July 2025 • Season 2024/25</p>
         </div>
-        <button className="bg-[#183182] hover:bg-[#183182]/90 text-white px-5 py-2.5 rounded-full flex items-center gap-2 text-sm font-medium transition-colors">
+        <Link to="/players/add" className="bg-[#183182] hover:bg-[#183182]/90 text-white px-5 py-2.5 rounded-full flex items-center gap-2 text-sm font-medium transition-colors">
           <FiPlus size={18} />
           Add Player
-        </button>
+        </Link>
       </div>
 
       {/* Cards Grid Section */}
